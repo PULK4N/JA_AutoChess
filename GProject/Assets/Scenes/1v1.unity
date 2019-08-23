@@ -190,6 +190,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1575417450}
+  - component: {fileID: 1575417451}
   m_Layer: 0
   m_Name: ChessBoard
   m_TagString: Untagged
@@ -205,13 +206,26 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1575417449}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 288.70352, y: 109.16228, z: 221.49075}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.18793, y: 0.18793, z: 0.18793}
   m_Children:
   - {fileID: 2079666045}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1575417451
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1575417449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b137d6a2d93cbf644ba92e29c7616f6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  BoxSize: 10
 --- !u!1 &1918965490
 GameObject:
   m_ObjectHideFlags: 0
@@ -321,8 +335,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2079666044}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -25, y: 0, z: -96}
-  m_LocalScale: {x: 40, y: 1, z: 40}
+  m_LocalPosition: {x: 213, y: 0, z: 213}
+  m_LocalScale: {x: 42.5, y: 1, z: 42.5}
   m_Children: []
   m_Father: {fileID: 1575417450}
   m_RootOrder: 0
