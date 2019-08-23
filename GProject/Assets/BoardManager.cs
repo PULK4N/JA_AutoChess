@@ -22,6 +22,8 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
+    List<GameObject> ChessUnits;
+
     private void Update()
     {
         DrawChessBoard();
@@ -37,8 +39,16 @@ public class BoardManager : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit,25.0f*BoxSize, LayerMask.GetMask("ChessPlane")))
         {
-            Debug.Log(hit.point);
+            //Debug.Log(hit.point);
+            selectionX = (int)hit.point.x / BoxSize;
+            selectionY = (int)hit.point.z / BoxSize;
         }
+        else
+        {
+            selectionX = -1;
+            selectionY = -1;
+        }
+
     }
 
     private void DrawChessBoard()
@@ -57,6 +67,17 @@ public class BoardManager : MonoBehaviour
                 start = Vector3.right * j*BoxSize;
                 Debug.DrawLine(start, start + heightLine);
             }
+        }
+
+        if(selectionX >=0 && selectionY >= 0)
+        {
+            Debug.DrawLine(
+                (Vector3.forward * selectionY + Vector3.right * selectionX) * BoxSize,
+                (Vector3.forward * (selectionY + 1) + Vector3.right * (selectionX + 1))* BoxSize);
+
+            Debug.DrawLine(
+            (Vector3.forward * (selectionY+1) + Vector3.right * selectionX) * BoxSize,
+            (Vector3.forward * selectionY + Vector3.right * (selectionX + 1)) * BoxSize);
         }
     }
 }
