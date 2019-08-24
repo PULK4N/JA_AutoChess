@@ -22,7 +22,8 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
-    List<GameObject> ChessUnits;
+    public List<GameObject> ChessUnitsPrefabs;
+    private List<GameObject> _activeChessUnits;
 
     private void Update()
     {
