@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\BattleZone\BoardManager.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\GameManagerEvents.cs" />
     <Compile Include="Assets\Scripts\PanelScripts\ShowPanelFromPlayButton.cs" />
     <Compile Include="Assets\Scripts\SceneData\ScreenDataSave.cs" />
     <Compile Include="Assets\Scripts\SceneData\ScreenDataSettings.cs" />
