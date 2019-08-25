@@ -32,6 +32,6 @@ public class PlayerHPManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        SetHealth(50);
+        
     }
 }
