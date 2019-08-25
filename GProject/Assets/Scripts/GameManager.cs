@@ -27,8 +27,8 @@ public class GameManager : MonoBehaviour
     }
     #endregion
 
-   // public GameManagerEvents Events = new GameManagerEvents();
-   // public LevelManager Level;
+    public GameManagerEvents Events = new GameManagerEvents();
+    public LevelManager Level;
 
     #region Data
 
