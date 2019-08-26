@@ -22,8 +22,8 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
-    public Unit[,] Units { get; set; }
-    private Unit selectedUnit;
+    //public Unit[,] Units { get; set; }
+    //private Unit selectedUnit;
 
     public List<GameObject> ChessUnitsPrefabs;
     private List<GameObject> _activeChessUnits;
@@ -67,14 +67,14 @@ public class BoardManager : MonoBehaviour
         // quarterion - for orientation, change if needed (default Quaternion.identity)
         GameObject go = Instantiate(ChessUnitsPrefabs[index], GetTileCenter(row, column), orientation) as GameObject;
         go.transform.SetParent(transform);
-        Units[row, column] = go.GetComponent<Unit>();
+        //Units[row, column] = go.GetComponent<Unit>();
         _activeChessUnits.Add(go);
     }
 
     private void SpawnAllChessUnits()
     {
         _activeChessUnits = new List<GameObject>();
-        Units = new Unit[8, 8];
+        //Units = new Unit[8, 8];
 
         //SpawnChessman(0, GetTileCenter(1,1));
     }
