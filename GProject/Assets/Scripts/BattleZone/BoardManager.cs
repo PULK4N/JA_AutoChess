@@ -73,7 +73,7 @@ public class BoardManager : MonoBehaviour
 
     private void SpawnAllChessUnits()
     {
-        _activeChessUnits = new List<GameObject>();
+        //_activeChessUnits = new List<GameObject>();
         //Units = new Unit[8, 8];
 
         //SpawnChessman(0, GetTileCenter(1,1));
