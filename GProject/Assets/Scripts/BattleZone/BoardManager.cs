@@ -22,8 +22,18 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
+    public Unit[,] Units { get; set; }
+    private Unit selectedUnit;
+
     public List<GameObject> ChessUnitsPrefabs;
     private List<GameObject> _activeChessUnits;
+
+    private Quaternion orientation = Quaternion.Euler(0, 180, 0);
+
+    private void Start()
+    {
+        
+    }
 
     private void Update()
     {
@@ -50,6 +60,31 @@ public class BoardManager : MonoBehaviour
             selectionY = -1;
         }
 
+    }
+
+    private void SpawnChessman(int index, int row, int column)
+    {
+        // quarterion - for orientation, change if needed (default Quaternion.identity)
+        GameObject go = Instantiate(ChessUnitsPrefabs[index], GetTileCenter(row, column), orientation) as GameObject;
+        go.transform.SetParent(transform);
+        Units[row, column] = go.GetComponent<Unit>();
+        _activeChessUnits.Add(go);
+    }
+
+    private void SpawnAllChessUnits()
+    {
+        _activeChessUnits = new List<GameObject>();
+        Units = new Unit[8, 8];
+
+        //SpawnChessman(0, GetTileCenter(1,1));
+    }
+
+    private Vector3 GetTileCenter(int row, int column)
+    {
+        Vector3 origin = Vector3.zero;
+        origin.x += (TileWidth * column) + TileWidth;
+        origin.z += (TileWidth * row) + TileWidth;
+        return origin;
     }
 
     private void DrawChessBoard()
