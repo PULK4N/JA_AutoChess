@@ -34,3 +34,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+GProject/Assembly-CSharp.csproj
+GProject/ProjectSettings/ProjectVersion.txt
