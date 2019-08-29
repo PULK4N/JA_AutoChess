@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BoardManager : MonoBehaviour
 {
@@ -32,6 +33,9 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
+        Sprite myImage = Resources.Load("thor", typeof(Sprite)) as Sprite;
+        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
+
 
         GameObject FigureOnBoard = new GameObject();
 
@@ -41,7 +45,6 @@ public class BoardManager : MonoBehaviour
         GameObject unitUI = Resources.Load("Figure", typeof(GameObject)) as GameObject;
         GameObject go1 = Instantiate(unitUI, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
         go1.transform.SetParent(FigureOnBoard.transform);
-
 
         //myPrefab.AddComponent<Rigidbody>();
         //myPrefab.AddComponent<MeshFilter>();
