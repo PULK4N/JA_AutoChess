@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BoardManager : MonoBehaviour
 {
@@ -22,17 +23,42 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
-    //public Unit[,] Units { get; set; }
+    public Figure[,] Figures { get; set; }
     //private Unit selectedUnit;
 
-    public List<GameObject> ChessUnitsPrefabs;
-    private List<GameObject> _activeChessUnits;
+    public List<GameObject> ChessFigurePrefabs;
+    private List<GameObject> _activeChessFigures;
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
+    public void SpawnFigure(string unitName)
+    {
+        GameObject FigureOnBoard = new GameObject();
+        FigureOnBoard.name = unitName + "Figure";
+
+        GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
+        GameObject go = Instantiate(unitPrefab, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
+        go.transform.SetParent(FigureOnBoard.transform);
+
+        GameObject unitUI = Resources.Load("Figure", typeof(GameObject)) as GameObject;
+        GameObject go1 = Instantiate(unitUI, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
+        go1.transform.SetParent(FigureOnBoard.transform);
+
+        ChessFigurePrefabs.Add(FigureOnBoard);
+        SpawnChessFigure(0, 1, 1);
+    }
+
     private void Start()
     {
-        
+        Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
+        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
+
+        //EventSystem.current.currentSelectedGameObject.GetComponent<Image>().sprite.name // get name of selected object
+
+        //myPrefab.AddComponent<Rigidbody>();
+        //myPrefab.AddComponent<MeshFilter>();
+        //myPrefab.AddComponent<BoxCollider>();
+        //myPrefab.AddComponent<MeshRenderer>();
     }
 
     private void Update()
@@ -62,19 +88,18 @@ public class BoardManager : MonoBehaviour
 
     }
 
-    private void SpawnChessman(int index, int row, int column)
+    private void SpawnChessFigure(int index, int row, int column)
     {
         // quarterion - for orientation, change if needed (default Quaternion.identity)
-        GameObject go = Instantiate(ChessUnitsPrefabs[index], GetTileCenter(row, column), orientation) as GameObject;
-        go.transform.SetParent(transform);
-        //Units[row, column] = go.GetComponent<Unit>();
-        _activeChessUnits.Add(go);
+        //Figures[row, column] = go.GetComponent<Figure>();
+        _activeChessFigures = new List<GameObject>();
+        _activeChessFigures.Add(ChessFigurePrefabs[index]);
     }
 
-    private void SpawnAllChessUnits()
+    private void SpawnAllChessFigures()
     {
-        //_activeChessUnits = new List<GameObject>();
-        //Units = new Unit[8, 8];
+        _activeChessFigures = new List<GameObject>();
+        Figures = new Figure[8, 8];
 
         //SpawnChessman(0, GetTileCenter(1,1));
     }
@@ -82,8 +107,8 @@ public class BoardManager : MonoBehaviour
     private Vector3 GetTileCenter(int row, int column)
     {
         Vector3 origin = Vector3.zero;
-        origin.x += (TileWidth * column) + TileWidth;
-        origin.z += (TileWidth * row) + TileWidth;
+        origin.x += (BoxSize * column) + BoxSize / 2;
+        origin.z += (BoxSize * row) + BoxSize / 2;
         return origin;
     }
 
