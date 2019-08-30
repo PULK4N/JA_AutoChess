@@ -31,28 +31,34 @@ public class BoardManager : MonoBehaviour
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
-    private void Start()
+    public void SpawnFigure(string unitName)
     {
-        Sprite myImage = Resources.Load("thor", typeof(Sprite)) as Sprite;
-        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
-
-
         GameObject FigureOnBoard = new GameObject();
+        FigureOnBoard.name = unitName + "Figure";
 
-        GameObject unitPrefab = Resources.Load("footman_Red", typeof(GameObject)) as GameObject;
+        GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
         GameObject go = Instantiate(unitPrefab, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
         go.transform.SetParent(FigureOnBoard.transform);
+
         GameObject unitUI = Resources.Load("Figure", typeof(GameObject)) as GameObject;
         GameObject go1 = Instantiate(unitUI, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
         go1.transform.SetParent(FigureOnBoard.transform);
+
+        ChessFigurePrefabs.Add(FigureOnBoard);
+        SpawnChessFigure(0, 1, 1);
+    }
+
+    private void Start()
+    {
+        Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
+        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
+
+        //EventSystem.current.currentSelectedGameObject.GetComponent<Image>().sprite.name // get name of selected object
 
         //myPrefab.AddComponent<Rigidbody>();
         //myPrefab.AddComponent<MeshFilter>();
         //myPrefab.AddComponent<BoxCollider>();
         //myPrefab.AddComponent<MeshRenderer>();
-
-        ChessFigurePrefabs.Add(FigureOnBoard);
-        SpawnChessFigure(0, 1, 1);
     }
 
     private void Update()
