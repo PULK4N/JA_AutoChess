@@ -36,3 +36,6 @@ sysinfo.txt
 *.unitypackage
 GProject/Assembly-CSharp.csproj
 GProject/ProjectSettings/ProjectVersion.txt
+*.meta
+*.meta
+GProject/Assets/Prefabs/UnitUI.meta
