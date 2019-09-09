@@ -17,6 +17,14 @@ public class BoardManager : MonoBehaviour
     private const float TILE_OFFSET = 0.5f;
     #endregion
 
+    private struct BoardTiles
+    {
+        public bool CanPutAFigure;
+        public Figure Figure;
+        public Vector3 Position;
+    }
+    private BoardTiles[,] boardTiles = new BoardTiles[8, 8];
+
     [SerializeField]
     private int BoxSize = 10;
 
@@ -139,6 +147,25 @@ public class BoardManager : MonoBehaviour
             Debug.DrawLine(
             (Vector3.forward * (selectionY+1) + Vector3.right * selectionX) * BoxSize,
             (Vector3.forward * selectionY + Vector3.right * (selectionX + 1)) * BoxSize);
+        }
+    }
+
+    private void SetUpTheTiles()
+    {
+        for(int row = 0; row < 8; row++)
+        {
+            for(int column=0; column<8; column++)
+            {
+                boardTiles[row, column].Position = GetTileCenter(row, column);
+                if (column < 4)
+                {
+                    boardTiles[row, column].CanPutAFigure = true;
+                }
+                else
+                {
+                    boardTiles[row, column].CanPutAFigure = false;
+                }
+            }
         }
     }
 }

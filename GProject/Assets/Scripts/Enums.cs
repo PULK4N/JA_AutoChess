@@ -20,4 +20,16 @@
         PVE,
         None
     }
+
+    public enum Mithology
+    {
+
+    }
+
+    public enum Deity
+    {
+
+
+
+    }
 }

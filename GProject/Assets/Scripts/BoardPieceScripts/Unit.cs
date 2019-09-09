@@ -1,4 +1,6 @@
-﻿public abstract class Unit
+﻿using System.Collections.Generic;
+
+public abstract class Unit
 {
     public struct Properties
     {
@@ -7,8 +9,8 @@
         public float AttackDamage;
         public float AbilityPower;
 
-        public float Health;
-        public float Mana;
+        public float CurrentHealth;
+        public float CurrentMana;
         public float Armor;
         public float MagicResist;
         public float Shield;
@@ -18,6 +20,16 @@
         //for special cases
         public byte IsInvounrable;
 
+        public List<Buff> Buffs;
+
+        public Enums.Deity Deity;
+        public Enums.Mithology Mithology;
+
+        
+        public int Cost;
+        public bool IsUntargetable;
+        public float FullHealth;
+        public float FullMana;
         public static Properties operator +(Properties property, Properties buff)
         {
             property.Range += buff.Range;
@@ -25,8 +37,8 @@
             property.AttackDamage += buff.AttackDamage;
             property.AbilityPower += buff.AbilityPower;
 
-            property.Health += buff.Health;
-            property.Mana += buff.Mana;
+            property.CurrentHealth += buff.CurrentHealth;
+            property.CurrentMana += buff.CurrentMana;
             property.Armor += buff.Armor;
             property.MagicResist += buff.MagicResist;
             property.Shield += buff.Shield;
@@ -45,8 +57,8 @@
             property.AttackDamage -= buff.AttackDamage;
             property.AbilityPower -= buff.AbilityPower;
 
-            property.Health -= buff.Health;
-            property.Mana -= buff.Mana;
+            property.CurrentHealth -= buff.CurrentHealth;
+            property.CurrentMana -= buff.CurrentMana;
             property.Armor -= buff.Armor;
             property.MagicResist -= buff.MagicResist;
             property.Shield -= buff.Shield;
