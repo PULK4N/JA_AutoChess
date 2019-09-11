@@ -20,7 +20,7 @@ public class BoardManager : MonoBehaviour
     private struct BoardTiles
     {
         public bool CanPutAFigure;
-        public Figure Figure;
+        //public Figure Figure;
         public Vector3 Position;
     }
     private BoardTiles[,] boardTiles = new BoardTiles[8, 8];
