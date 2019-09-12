@@ -53,6 +53,9 @@ namespace Prototype.NetworkLobby
 
         protected LobbyHook _lobbyHooks;
 
+        [SerializeField]
+        private GameObject Panel;
+
         void Start()
         {
             s_Singleton = this;
@@ -65,6 +68,11 @@ namespace Prototype.NetworkLobby
             DontDestroyOnLoad(gameObject);
 
             SetServerInfo("Offline", "None");
+
+            if (Panel != null)
+            {
+                Panel.SetActive(false);
+            }
         }
 
         public override void OnLobbyClientSceneChanged(NetworkConnection conn)
