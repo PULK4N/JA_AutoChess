@@ -3,14 +3,19 @@ using UnityEngine;
 
 public class Figure : MonoBehaviour
 {
-    struct Position
+    public struct Place
     {
-        int Row;
-        int Column;
+        public int Row;
+        public int Column;
     }
-    Unit unit;
-    Piece piece;
-    int cost;
+
+    public Place Position;
+
+    private Unit unit;
+    private Piece piece;
+    private int cost;
+
+    public string Owner { get; }
 
     public void AttackOrMove()
     {

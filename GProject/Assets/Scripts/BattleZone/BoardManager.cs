@@ -25,6 +25,8 @@ public class BoardManager : MonoBehaviour
     }
     private BoardTiles[,] boardTiles = new BoardTiles[8, 8];
 
+    public string Owner { get; }
+
     [SerializeField]
     private int BoxSize = 10;
 
@@ -32,10 +34,11 @@ public class BoardManager : MonoBehaviour
     private int selectionY = -1;
 
     public Figure[,] Figures { get; set; }
-    //private Unit selectedUnit;
+    private Figure _selectedFigure;
 
     public List<GameObject> ChessFigurePrefabs;
     private List<GameObject> _activeChessFigures;
+
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
@@ -45,15 +48,17 @@ public class BoardManager : MonoBehaviour
         FigureOnBoard.name = unitName + "Figure";
 
         GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-        GameObject go = Instantiate(unitPrefab, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
         go.transform.SetParent(FigureOnBoard.transform);
 
-        GameObject unitUI = Resources.Load("Figure", typeof(GameObject)) as GameObject;
-        GameObject go1 = Instantiate(unitUI, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
+        GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
+        GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
         go1.transform.SetParent(FigureOnBoard.transform);
 
+        FigureOnBoard.AddComponent<Figure>();
+
         ChessFigurePrefabs.Add(FigureOnBoard);
-        SpawnChessFigure(0, 1, 1);
+        SpawnAllChessFigures();
     }
 
     private void Start()
@@ -73,6 +78,50 @@ public class BoardManager : MonoBehaviour
     {
         DrawChessBoard();
         UpdateSelection();
+
+        if(Input.GetMouseButtonDown(0))
+        {
+            if(selectionX>=-1 && selectionY>=-1)
+            {
+                if(_selectedFigure == null)
+                {
+                    SelectFigure(selectionX, selectionY);
+                }
+                else
+                {
+                    MoveFigure(selectionX, selectionY);
+                }
+            }
+        }
+    }
+
+    private void SelectFigure(int x, int y)
+    {
+        if (Figures[x, y] == null)
+            return;
+        //if(figure is allowed to be moved)    -if it's a phase for moving pieces, ...
+        //...
+        //if (Figures[x, y].Owner != this.Owner)
+        //    return;
+
+        _selectedFigure = Figures[x, y];
+    }
+
+    private void MoveFigure(int x, int y)
+    {
+        if(IsPositionAllowed(x, y))
+        {
+            Figures[_selectedFigure.Position.Row, _selectedFigure.Position.Column] = null;
+            _selectedFigure.transform.position = GetTileCenter(x, y);
+            Figures[x, y] = _selectedFigure;
+        }
+
+        _selectedFigure = null;
+    }
+
+    private bool IsPositionAllowed(int x, int y)
+    {
+        return true;
     }
 
     private void UpdateSelection()
@@ -82,9 +131,8 @@ public class BoardManager : MonoBehaviour
             return;
         }
         RaycastHit hit;
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit,25.0f*BoxSize, LayerMask.GetMask("ChessPlane")))
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f*BoxSize, LayerMask.GetMask("ChessPlane")))
         {
-            //Debug.Log(hit.point);
             selectionX = (int)hit.point.x / BoxSize;
             selectionY = (int)hit.point.z / BoxSize;
         }
@@ -99,8 +147,8 @@ public class BoardManager : MonoBehaviour
     private void SpawnChessFigure(int index, int row, int column)
     {
         // quarterion - for orientation, change if needed (default Quaternion.identity)
-        //Figures[row, column] = go.GetComponent<Figure>();
-        _activeChessFigures = new List<GameObject>();
+        Figures[row, column] = ChessFigurePrefabs[index].GetComponent<Figure>();
+        ChessFigurePrefabs[index].transform.position = GetTileCenter(row, column);
         _activeChessFigures.Add(ChessFigurePrefabs[index]);
     }
 
@@ -109,14 +157,14 @@ public class BoardManager : MonoBehaviour
         _activeChessFigures = new List<GameObject>();
         Figures = new Figure[8, 8];
 
-        //SpawnChessman(0, GetTileCenter(1,1));
+        SpawnChessFigure(0, 0, 0);
     }
 
     private Vector3 GetTileCenter(int row, int column)
     {
         Vector3 origin = Vector3.zero;
-        origin.x += (BoxSize * column) + BoxSize / 2;
-        origin.z += (BoxSize * row) + BoxSize / 2;
+        origin.z += (BoxSize * column) + BoxSize / 2;
+        origin.x += (BoxSize * row) + BoxSize / 2;
         return origin;
     }
 
