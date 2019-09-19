@@ -22,13 +22,29 @@ public class BoardManager : MonoBehaviour
         public bool CanPutAFigure;
         //public Figure Figure;
         public Vector3 Position;
+
+        GameObject boardTileObject;
+        public BoardTiles(Vector3 Position)
+        {
+            CanPutAFigure = true;
+            this.Position = Position;
+            UnityEngine.Object tile = Resources.Load("Tile/Tile");
+            this.Position.y += 0.1f;
+            boardTileObject = (GameObject)GameObject.Instantiate(tile, this.Position, Quaternion.identity);
+            boardTileObject.transform.localScale = new Vector3(0.1f * BoxSize, 1, 0.1f * BoxSize);
+        }
+
+        public void ChangeColor(Color color)
+        {
+            boardTileObject.GetComponent<Renderer>().sharedMaterial.color = color;
+        }
     }
     private BoardTiles[,] boardTiles = new BoardTiles[8, 8];
 
     public string Owner { get; }
 
     [SerializeField]
-    private int BoxSize = 10;
+    private static int BoxSize = 10;
 
     private int selectionX = -1;
     private int selectionY = -1;
@@ -72,6 +88,7 @@ public class BoardManager : MonoBehaviour
         //myPrefab.AddComponent<MeshFilter>();
         //myPrefab.AddComponent<BoxCollider>();
         //myPrefab.AddComponent<MeshRenderer>();
+        SetUpTheTiles();
     }
 
     private void Update()
@@ -163,8 +180,8 @@ public class BoardManager : MonoBehaviour
     private Vector3 GetTileCenter(int row, int column)
     {
         Vector3 origin = Vector3.zero;
-        origin.z += (BoxSize * column) + BoxSize / 2;
         origin.x += (BoxSize * row) + BoxSize / 2;
+        origin.z += (BoxSize * column) + BoxSize / 2;
         return origin;
     }
 
@@ -204,7 +221,7 @@ public class BoardManager : MonoBehaviour
         {
             for(int column=0; column<8; column++)
             {
-                boardTiles[row, column].Position = GetTileCenter(row, column);
+                boardTiles[row, column] = new BoardTiles(GetTileCenter(row, column));
                 if (column < 4)
                 {
                     boardTiles[row, column].CanPutAFigure = true;
