@@ -82,21 +82,48 @@ public class BoardManager : MonoBehaviour
 
     public void SpawnFigure(string unitName)
     {
-        GameObject FigureOnBoard = new GameObject();
-        FigureOnBoard.name = unitName + "Figure";
+        for (int i = 0; i < 8; ++i)
+        {
+            if (Figures[-1, i] == null)
+            {
+                GameObject FigureOnBoard = new GameObject();
+                FigureOnBoard.name = unitName + "Figure";
 
-        GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-        GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-        go.transform.SetParent(FigureOnBoard.transform);
+                GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
+                GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                go.transform.SetParent(FigureOnBoard.transform);
 
-        GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
-        GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
-        go1.transform.SetParent(FigureOnBoard.transform);
+                GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
+                GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
+                go1.transform.SetParent(FigureOnBoard.transform);
 
-        FigureOnBoard.AddComponent<Figure>();
+                FigureOnBoard.AddComponent<Figure>();
 
-        ChessFigurePrefabs.Add(FigureOnBoard);
-        SpawnAllChessFigures();
+                ChessFigurePrefabs.Add(FigureOnBoard);
+                SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
+                break;
+            }
+        }
+    }
+
+    private void SpawnChessFigure(int index, int row, int column)
+    {
+        // quarterion - for orientation, change if needed (default Quaternion.identity)
+        Figures[row, column] = ChessFigurePrefabs[index].GetComponent<Figure>();
+        ChessFigurePrefabs[index].transform.position = GetTileCenter(row, column);
+        Figures[row, column].Position.Row = row;
+        Figures[row, column].Position.Column = column;
+        _activeChessFigures.Add(ChessFigurePrefabs[index]);
+    }
+
+    private void SpawnAllChessFigures()
+    {
+        int i = 0;
+        foreach(GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            SpawnChessFigure(i++, figure.Position.Row, figure.Position.Column);
+        }
     }
 
     private void Start()
@@ -108,6 +135,8 @@ public class BoardManager : MonoBehaviour
         SetUpTheTiles();
 
         Figures = new FigureSet();
+
+        _activeChessFigures = new List<GameObject>();
     }
 
     private void Update()
@@ -225,23 +254,6 @@ public class BoardManager : MonoBehaviour
             selectionColumn = -1;
             selectionRow = -1;
         }
-    }
-
-    private void SpawnChessFigure(int index, int row, int column)
-    {
-        // quarterion - for orientation, change if needed (default Quaternion.identity)
-        Figures[row, column] = ChessFigurePrefabs[index].GetComponent<Figure>();
-        ChessFigurePrefabs[index].transform.position = GetTileCenter(row, column);
-        Figures[row, column].Position.Row = row;
-        Figures[row, column].Position.Column = column;
-        _activeChessFigures.Add(ChessFigurePrefabs[index]);
-    }
-
-    private void SpawnAllChessFigures()
-    {
-        _activeChessFigures = new List<GameObject>();
-
-        SpawnChessFigure(0, -1, 0);
     }
 
     private Vector3 GetTileCenter(int row, int column)
