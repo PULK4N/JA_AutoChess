@@ -10,6 +10,7 @@ public class Figure : MonoBehaviour
     }
 
     public Place Position;
+    public bool Untargetable;
 
     private Unit unit;
     private Piece piece;
