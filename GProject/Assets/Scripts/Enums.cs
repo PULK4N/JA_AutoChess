@@ -21,7 +21,7 @@
         None
     }
 
-    public enum Mithology
+    public enum Mythology
     {
 
     }

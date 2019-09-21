@@ -4,7 +4,7 @@ public abstract class Unit
 {
     public struct Properties
     {
-        public float Range;
+        public int Range;
         public float AttackSpeed;
         public float AttackDamage;
         public float AbilityPower;
@@ -23,9 +23,9 @@ public abstract class Unit
         public List<Buff> Buffs;
 
         public Enums.Deity Deity;
-        public Enums.Mithology Mithology;
+        public Enums.Mythology Mythology;
 
-        
+
         public int Cost;
         public bool IsUntargetable;
         public float FullHealth;
@@ -73,5 +73,5 @@ public abstract class Unit
     }
     public Ability Ability;
 
-    
+    public Properties Stats;
 }

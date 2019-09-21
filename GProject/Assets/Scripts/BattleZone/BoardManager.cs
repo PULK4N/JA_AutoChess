@@ -17,22 +17,62 @@ public class BoardManager : MonoBehaviour
     private const float TILE_OFFSET = 0.5f;
     #endregion
 
-    private struct BoardTiles
+    private class BoardTiles
     {
-        public bool CanPutAFigure;
-        //public Figure Figure;
         public Vector3 Position;
+        //public Figure Figure;
+
+        GameObject boardTileObject;
+        public BoardTiles() { }
+
+        public BoardTiles(Vector3 Position, int typeOfTile = 0)
+        {
+            this.Position = Position;
+            UnityEngine.Object tile = Resources.Load("Tile/" + (typeOfTile == 0 ? "Tile" : "BenchTile"));
+            this.Position.y += 0.1f;
+            boardTileObject = (GameObject)GameObject.Instantiate(tile, this.Position, Quaternion.identity);
+            boardTileObject.transform.localScale = new Vector3(0.1f * BoxSize, 1, 0.1f * BoxSize);
+            ChangeColor(BoardTiles.DefaultColor);
+        }
+
+        public static Color DefaultColor = Color.grey;
+        public void ChangeColor(Color color)
+        {
+            this.boardTileObject.GetComponent<Renderer>().material.color = color;
+        }
+
+        private static BoardTiles[,] _boardTiles = new BoardTiles[9, 8];
+
+        public BoardTiles this[int i, int j]
+        {
+            get { return _boardTiles[i + 1, j]; }
+            set { _boardTiles[i + 1, j] = value; }
+        }
     }
-    private BoardTiles[,] boardTiles = new BoardTiles[8, 8];
+    private BoardTiles boardTiles;
+    private BoardTiles _lastBoardTilePassed;
+
+    public class FigureSet
+    {
+        private Figure[,] _figures = new Figure[9, 8];
+
+        public Figure this[int i, int j]
+        {
+            get { return _figures[i + 1, j]; }
+            set { _figures[i + 1, j] = value; }
+        }
+    }
+
+    public string Owner { get; }
 
     [SerializeField]
-    private int BoxSize = 10;
+    private static int BoxSize = 10;
 
-    private int selectionX = -1;
-    private int selectionY = -1;
+    private int selectionRow = -1;
+    private int selectionColumn = -1;
 
-    public Figure[,] Figures { get; set; }
-    //private Unit selectedUnit;
+    public FigureSet Figures { get; set; }
+    private Figure _selectedFigure;
 
     public List<GameObject> ChessFigurePrefabs;
     private List<GameObject> _activeChessFigures;
@@ -41,38 +81,172 @@ public class BoardManager : MonoBehaviour
 
     public void SpawnFigure(string unitName)
     {
-        GameObject FigureOnBoard = new GameObject();
-        FigureOnBoard.name = unitName + "Figure";
+        for (int i = 0; i < 8; ++i)
+        {
+            if (Figures[-1, i] == null)
+            {
+                GameObject FigureOnBoard = new GameObject();
+                FigureOnBoard.name = unitName + "Figure";
 
-        GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-        GameObject go = Instantiate(unitPrefab, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
-        go.transform.SetParent(FigureOnBoard.transform);
+                GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
+                GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                go.transform.SetParent(FigureOnBoard.transform);
 
-        GameObject unitUI = Resources.Load("Figure", typeof(GameObject)) as GameObject;
-        GameObject go1 = Instantiate(unitUI, GetTileCenter(0, 0), Quaternion.identity) as GameObject;
-        go1.transform.SetParent(FigureOnBoard.transform);
+                GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
+                GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
+                go1.transform.SetParent(FigureOnBoard.transform);
 
-        ChessFigurePrefabs.Add(FigureOnBoard);
-        SpawnChessFigure(0, 1, 1);
+                FigureOnBoard.AddComponent<Figure>();
+
+                ChessFigurePrefabs.Add(FigureOnBoard);
+                SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
+                break;
+            }
+        }
     }
 
+    private void SpawnChessFigure(int index, int row, int column)
+    {
+        // quarterion - for orientation, change if needed (default Quaternion.identity)
+        Figures[row, column] = ChessFigurePrefabs[index].GetComponent<Figure>();
+        ChessFigurePrefabs[index].transform.position = GetTileCenter(row, column);
+        Figures[row, column].Position.Row = row;
+        Figures[row, column].Position.Column = column;
+        _activeChessFigures.Add(ChessFigurePrefabs[index]);
+    }
+
+    private void SpawnAllChessFigures()
+    {
+        int i = 0;
+        foreach(GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            SpawnChessFigure(i++, figure.Position.Row, figure.Position.Column);
+        }
+    }
+    
     private void Start()
     {
         Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
         GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
 
-        //EventSystem.current.currentSelectedGameObject.GetComponent<Image>().sprite.name // get name of selected object
+        boardTiles = new BoardTiles();
+        SetUpTheTiles();
 
-        //myPrefab.AddComponent<Rigidbody>();
-        //myPrefab.AddComponent<MeshFilter>();
-        //myPrefab.AddComponent<BoxCollider>();
-        //myPrefab.AddComponent<MeshRenderer>();
+        Figures = new FigureSet();
+
+        _activeChessFigures = new List<GameObject>();
+
+        Dijkstra.SetGraph(Figures);
     }
 
     private void Update()
     {
         DrawChessBoard();
         UpdateSelection();
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (selectionColumn >= 0 && selectionRow >= -1)
+            {
+                if (_selectedFigure == null)
+                {
+                    SelectFigure(selectionRow, selectionColumn);
+                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
+                }
+            }
+        }
+
+        if(Input.GetKeyUp("up"))
+        {
+            Dijkstra dijkstra = new Dijkstra();
+            dijkstra.EnemyInsideRange(_selectedFigure);
+            List<System.Drawing.Point> points = dijkstra.FindNextStep(_selectedFigure);
+            foreach(System.Drawing.Point point in points)
+            {
+                boardTiles[point.X, point.Y].ChangeColor(Color.blue);
+            }
+        }
+
+        if (Input.GetMouseButton(0))
+        {
+            if (selectionColumn >= 0 && selectionRow >= -1)
+            {
+                if (_selectedFigure != null)
+                {
+                    if (selectionRow > 3)
+                    {
+                        selectionRow = 3;
+                    }
+                    boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
+                    _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
+                }
+                if(boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
+                {
+                    _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
+                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (selectionColumn >= 0 && selectionRow >= -1)
+            {
+                if (selectionRow > 3)
+                {
+                    selectionRow = 3;
+                }
+                if (_selectedFigure != null)
+                    MoveFigure(selectionRow, selectionColumn);
+            }
+        }
+    }
+
+    private void SelectFigure(int row, int column)
+    {
+        if (Figures[row, column] == null)
+            return;
+        //if(figure is allowed to be moved)    -if it's a phase for moving pieces, ...
+        //...
+        //if (Figures[x, y].Owner != this.Owner)
+        //    return;
+
+        _selectedFigure = Figures[row, column];
+    }
+
+    private void MoveFigure(int row, int column)
+    {
+        if (IsPositionAllowed(row, column))
+        {
+            Figures[_selectedFigure.Position.Row, _selectedFigure.Position.Column] = null;
+
+            if (Figures[row, column] != null)
+            {
+                Figure figureToSwap = Figures[row, column];
+                figureToSwap.transform.position = GetTileCenter(_selectedFigure.Position.Row, _selectedFigure.Position.Column);
+                Figures[_selectedFigure.Position.Row, _selectedFigure.Position.Column] = figureToSwap;
+
+                figureToSwap.Position.Row = row;
+                figureToSwap.Position.Column = column;
+                figureToSwap.Untargetable = row == -1;
+            }
+
+            Figures[row, column] = _selectedFigure;
+            _selectedFigure.transform.position = GetTileCenter(row, column);
+            _selectedFigure.Position.Row = row;
+            _selectedFigure.Position.Column = column;
+            _selectedFigure.Untargetable = row == -1;
+
+            boardTiles[selectionRow, selectionColumn].ChangeColor(BoardTiles.DefaultColor);
+        }
+
+        _selectedFigure = null;
+    }
+
+    private bool IsPositionAllowed(int row, int column)
+    {
+        return true;
     }
 
     private void UpdateSelection()
@@ -82,41 +256,23 @@ public class BoardManager : MonoBehaviour
             return;
         }
         RaycastHit hit;
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit,25.0f*BoxSize, LayerMask.GetMask("ChessPlane")))
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f * BoxSize, LayerMask.GetMask("ChessPlane")))
         {
-            //Debug.Log(hit.point);
-            selectionX = (int)hit.point.x / BoxSize;
-            selectionY = (int)hit.point.z / BoxSize;
+            selectionColumn = (int)hit.point.x / BoxSize;
+            selectionRow = (int)Math.Floor((hit.point.z / BoxSize));
         }
         else
         {
-            selectionX = -1;
-            selectionY = -1;
+            selectionColumn = -1;
+            selectionRow = -1;
         }
-
-    }
-
-    private void SpawnChessFigure(int index, int row, int column)
-    {
-        // quarterion - for orientation, change if needed (default Quaternion.identity)
-        //Figures[row, column] = go.GetComponent<Figure>();
-        _activeChessFigures = new List<GameObject>();
-        _activeChessFigures.Add(ChessFigurePrefabs[index]);
-    }
-
-    private void SpawnAllChessFigures()
-    {
-        _activeChessFigures = new List<GameObject>();
-        Figures = new Figure[8, 8];
-
-        //SpawnChessman(0, GetTileCenter(1,1));
     }
 
     private Vector3 GetTileCenter(int row, int column)
     {
         Vector3 origin = Vector3.zero;
-        origin.x += (BoxSize * column) + BoxSize / 2;
         origin.z += (BoxSize * row) + BoxSize / 2;
+        origin.x += (BoxSize * column) + BoxSize / 2;
         return origin;
     }
 
@@ -124,47 +280,40 @@ public class BoardManager : MonoBehaviour
     {
 
 
-        Vector3 widthLine = Vector3.right * 8 *BoxSize;
-        Vector3 heightLine = Vector3.forward * 8 *BoxSize;
+        Vector3 widthLine = Vector3.right * 8 * BoxSize;
+        Vector3 heightLine = Vector3.forward * 9 * BoxSize;
 
-        for(int i = 0; i <= 8; i++)
+        for (int row = -1; row <= 8; row++)
         {
-            Vector3 start = Vector3.forward * i*BoxSize;
+            Vector3 start = Vector3.forward * row * BoxSize;
             Debug.DrawLine(start, start + widthLine);
-            for (int j = 0;  j <=8;  j++)
+            for (int column = 0; column <= 8; column++)
             {
-                start = Vector3.right * j*BoxSize;
+                start = Vector3.right * column * BoxSize;
+                start.z -= 1 * BoxSize;
                 Debug.DrawLine(start, start + heightLine);
             }
         }
 
-        if(selectionX >=0 && selectionY >= 0)
+        if (selectionColumn >= 0 && selectionRow >= -1)
         {
             Debug.DrawLine(
-                (Vector3.forward * selectionY + Vector3.right * selectionX) * BoxSize,
-                (Vector3.forward * (selectionY + 1) + Vector3.right * (selectionX + 1))* BoxSize);
+                (Vector3.forward * selectionRow + Vector3.right * selectionColumn) * BoxSize,
+                (Vector3.forward * (selectionRow + 1) + Vector3.right * (selectionColumn + 1)) * BoxSize);
 
             Debug.DrawLine(
-            (Vector3.forward * (selectionY+1) + Vector3.right * selectionX) * BoxSize,
-            (Vector3.forward * selectionY + Vector3.right * (selectionX + 1)) * BoxSize);
+                (Vector3.forward * (selectionRow + 1) + Vector3.right * selectionColumn) * BoxSize,
+                (Vector3.forward * selectionRow + Vector3.right * (selectionColumn + 1)) * BoxSize);
         }
     }
 
     private void SetUpTheTiles()
     {
-        for(int row = 0; row < 8; row++)
+        for (int row = -1; row < 8; row++)
         {
-            for(int column=0; column<8; column++)
+            for (int column = 0; column < 8; column++)
             {
-                boardTiles[row, column].Position = GetTileCenter(row, column);
-                if (column < 4)
-                {
-                    boardTiles[row, column].CanPutAFigure = true;
-                }
-                else
-                {
-                    boardTiles[row, column].CanPutAFigure = false;
-                }
+                boardTiles[row, column] = new BoardTiles(GetTileCenter(row, column), row == -1 ? 1 : 0);
             }
         }
     }
