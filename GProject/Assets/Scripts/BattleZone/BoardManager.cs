@@ -77,7 +77,6 @@ public class BoardManager : MonoBehaviour
     public List<GameObject> ChessFigurePrefabs;
     private List<GameObject> _activeChessFigures;
 
-
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
     public void SpawnFigure(string unitName)
@@ -125,7 +124,7 @@ public class BoardManager : MonoBehaviour
             SpawnChessFigure(i++, figure.Position.Row, figure.Position.Column);
         }
     }
-
+    
     private void Start()
     {
         Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
@@ -137,6 +136,8 @@ public class BoardManager : MonoBehaviour
         Figures = new FigureSet();
 
         _activeChessFigures = new List<GameObject>();
+
+        Dijkstra.SetGraph(Figures);
     }
 
     private void Update()
@@ -156,11 +157,22 @@ public class BoardManager : MonoBehaviour
             }
         }
 
+        if(Input.GetKeyUp("up"))
+        {
+            Dijkstra dijkstra = new Dijkstra();
+            dijkstra.EnemyInsideRange(_selectedFigure);
+            List<System.Drawing.Point> points = dijkstra.FindNextStep(_selectedFigure);
+            foreach(System.Drawing.Point point in points)
+            {
+                boardTiles[point.X, point.Y].ChangeColor(Color.blue);
+            }
+        }
+
         if (Input.GetMouseButton(0))
         {
             if (selectionColumn >= 0 && selectionRow >= -1)
             {
-                if(_selectedFigure!=null)
+                if (_selectedFigure != null)
                 {
                     if (selectionRow > 3)
                     {

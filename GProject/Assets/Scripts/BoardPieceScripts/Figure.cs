@@ -16,6 +16,8 @@ public class Figure : MonoBehaviour
     private Piece piece;
     private int cost;
 
+    public int Range { get { return 1/*unit.Stats.Range*/; } }
+
     public string Owner { get; }
 
     public void AttackOrMove()
