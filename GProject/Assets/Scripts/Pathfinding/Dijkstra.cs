@@ -93,7 +93,7 @@ public class Dijkstra
     }
     public List<Point> Range = new List<Point>();
 
-    public List<Point> FindNextStep(Figure source)
+    public Point FindNextStep(Figure source)
     {
         int[,] distance = new int[_rows, _columns];
         bool[,] shortestPathTreeSet = new bool[_rows, _columns];
@@ -112,10 +112,12 @@ public class Dijkstra
         while (EnemyInsideRange(source, u.X, u.Y) == null)
         {
             u = MinimumDistance(distance, shortestPathTreeSet);
+            if(u.X <0 || u.Y<0)
+                return new Point(-1, -1); // path not found
+
             if (distance[u.X, u.Y] == int.MaxValue)
             {
-                Debug.Log(u.X+","+ u.Y+ "  " + (_graph[u.X,u.Y]==null));
-                return null;//new Point(-1, -1); // path not found
+                return new Point(-1, -1); // path not found
             }
 
             shortestPathTreeSet[u.X, u.Y] = true;
@@ -130,7 +132,7 @@ public class Dijkstra
             }
         }
 
-        return MakePath(source, u, distance);
+        return MakePath(source, u, distance)[0];
     }
 
     private List<Point> MakePath(Figure source, Point goal, int[,] distance)
@@ -150,7 +152,7 @@ public class Dijkstra
                 if (!(xdx < 0 || xdx >= _rows || ydy < 0 || ydy >= _columns))
                     if (distance[x, y] == 1 + distance[xdx, ydy] && (_graph[xdx, ydy] == null || _graph[xdx, ydy] ==source))
                     {
-                        if (_graph[xdx, ydy] == source)
+                        if(_graph[xdx, ydy] == source)
                             break;
                         pathNode.X = xdx;
                         pathNode.Y = ydy;
