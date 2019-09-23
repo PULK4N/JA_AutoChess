@@ -69,7 +69,7 @@ public class Dijkstra
                         figure = _graph[currentRow + distance - System.Math.Abs(i), currentColumn + i];
                         if (figure != null)
                         {
-                            if (figure != source)
+                            if (figure.Owner != source.Owner)
                                 enemies.Add(figure);
                         }
                     }
@@ -79,7 +79,7 @@ public class Dijkstra
                         figure = _graph[currentRow - distance + System.Math.Abs(i), currentColumn + i];
                         if (figure != null)
                         {
-                            if (figure != source)
+                            if (figure.Owner != source.Owner)
                                 enemies.Add(figure);
                         }
                     };
