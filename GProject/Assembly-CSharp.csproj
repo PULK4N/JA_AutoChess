@@ -75,7 +75,7 @@
     <Compile Include="Assets\Scripts\BattleZone\BattleZoneManager.cs" />
     <Compile Include="Assets\Scripts\BattleZone\BoardManager.cs" />
     <Compile Include="Assets\Scripts\BattleZone\PlayerHPManager.cs" />
-    <Compile Include="Assets\Scripts\BoardPieceScripts\Ability.cs" />
+    <Compile Include="Assets\Scripts\BoardPieceScripts\Attack.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\Buff.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\Figure.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\MatchMaking.cs" />

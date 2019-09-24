@@ -11,8 +11,8 @@ public class Dijkstra
     private static BoardManager.FigureSet _graph;
 
     private static int _possibleDir = 8;
-    private static int[] dx = { -1, -1, -1, 0, 1, 1, 1, 0 };
-    private static int[] dy = { -1, 0, 1, 1, 1, 0, -1, -1 };
+    private static int[] dx = { -1, -1, 1, 1, 0, -1, 0, 1 };
+    private static int[] dy = { -1, 1, 1, -1, -1, 0, 1, 0 };
 
     private List<Point> path;
 
@@ -44,7 +44,6 @@ public class Dijkstra
                 }
             }
         }
-
         minIndex.X = min_indexRow;
         minIndex.Y = min_indexColumn;
 
@@ -70,7 +69,7 @@ public class Dijkstra
                         figure = _graph[currentRow + distance - System.Math.Abs(i), currentColumn + i];
                         if (figure != null)
                         {
-                            if (figure != source)
+                            if (figure.Owner != source.Owner)
                                 enemies.Add(figure);
                         }
                     }
@@ -80,7 +79,7 @@ public class Dijkstra
                         figure = _graph[currentRow - distance + System.Math.Abs(i), currentColumn + i];
                         if (figure != null)
                         {
-                            if (figure != source)
+                            if (figure.Owner != source.Owner)
                                 enemies.Add(figure);
                         }
                     };
@@ -94,7 +93,7 @@ public class Dijkstra
     }
     public List<Point> Range = new List<Point>();
 
-    public List<Point> FindNextStep(Figure source)
+    public Point FindNextStep(Figure source)
     {
         int[,] distance = new int[_rows, _columns];
         bool[,] shortestPathTreeSet = new bool[_rows, _columns];
@@ -113,10 +112,12 @@ public class Dijkstra
         while (EnemyInsideRange(source, u.X, u.Y) == null)
         {
             u = MinimumDistance(distance, shortestPathTreeSet);
+            if(u.X <0 || u.Y<0)
+                return new Point(-1, -1); // path not found
+
             if (distance[u.X, u.Y] == int.MaxValue)
             {
-                Debug.Log(u.X+","+ u.Y+ "  " + (_graph[u.X,u.Y]==null));
-                return null;//new Point(-1, -1); // path not found
+                return new Point(-1, -1); // path not found
             }
 
             shortestPathTreeSet[u.X, u.Y] = true;
@@ -131,7 +132,7 @@ public class Dijkstra
             }
         }
 
-        return MakePath(source, u, distance);
+        return MakePath(source, u, distance)[0];
     }
 
     private List<Point> MakePath(Figure source, Point goal, int[,] distance)
@@ -139,30 +140,34 @@ public class Dijkstra
         int x = goal.X, y = goal.Y;
         List<Point> path = new List<Point>();
         path.Add(goal);
-
-        while (x != source.Position.Row || y != source.Position.Column)
+        int cnt = 0;
+            Point pathNode = new Point();
+        while (distance[x,y]!=0)
         {
-            Point pathNode;
             int place = 0;
             for (int i = 0; i < _possibleDir; ++i)
             {
                 int xdx = x + dx[i];
                 int ydy = y + dy[i];
                 if (!(xdx < 0 || xdx >= _rows || ydy < 0 || ydy >= _columns))
-                    if (distance[x, y] == 1 + distance[xdx, ydy] && _graph[xdx, ydy] == null)
+                    if (distance[x, y] == 1 + distance[xdx, ydy] && (_graph[xdx, ydy] == null || _graph[xdx, ydy] ==source))
                     {
+                        if(_graph[xdx, ydy] == source)
+                            break;
                         pathNode.X = xdx;
                         pathNode.Y = ydy;
                         place = i;
                     }
             }
-            Debug.Log(pathNode.X + ",aaaaaaaaaaaaaaaaa " + pathNode.Y);
             path.Add(pathNode);
-
             x += dx[place];
             y += dy[place];
+            
+            if (cnt++ >= 10)
+                break;
         }
-        foreach( Point point in path)
+        
+        foreach (Point point in path)
             Debug.Log(point.X + "," + point.Y);
         path.Reverse();
         return path;

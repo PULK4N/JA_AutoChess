@@ -97,6 +97,8 @@ public class BoardManager : MonoBehaviour
                 go1.transform.SetParent(FigureOnBoard.transform);
 
                 FigureOnBoard.AddComponent<Figure>();
+                FigureOnBoard.GetComponent<Figure>().Owner = Owner;
+                FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
@@ -120,6 +122,7 @@ public class BoardManager : MonoBehaviour
         int i = 0;
         foreach(GameObject figurePrefab in ChessFigurePrefabs)
         {
+            figurePrefab.SetActive(true);
             Figure figure = figurePrefab.GetComponent<Figure>();
             SpawnChessFigure(i++, figure.Position.Row, figure.Position.Column);
         }
@@ -157,17 +160,6 @@ public class BoardManager : MonoBehaviour
             }
         }
 
-        if(Input.GetKeyUp("up"))
-        {
-            Dijkstra dijkstra = new Dijkstra();
-            dijkstra.EnemyInsideRange(_selectedFigure);
-            List<System.Drawing.Point> points = dijkstra.FindNextStep(_selectedFigure);
-            foreach(System.Drawing.Point point in points)
-            {
-                boardTiles[point.X, point.Y].ChangeColor(Color.blue);
-            }
-        }
-
         if (Input.GetMouseButton(0))
         {
             if (selectionColumn >= 0 && selectionRow >= -1)
@@ -201,6 +193,16 @@ public class BoardManager : MonoBehaviour
                     MoveFigure(selectionRow, selectionColumn);
             }
         }
+
+        if(Input.GetKeyDown("down"))
+        {
+            Figures[0, 0].Die();
+        }
+
+        if (Input.GetKeyDown("up"))
+        {
+            SpawnAllChessFigures();
+        }
     }
 
     private void SelectFigure(int row, int column)
@@ -227,8 +229,8 @@ public class BoardManager : MonoBehaviour
                 figureToSwap.transform.position = GetTileCenter(_selectedFigure.Position.Row, _selectedFigure.Position.Column);
                 Figures[_selectedFigure.Position.Row, _selectedFigure.Position.Column] = figureToSwap;
 
-                figureToSwap.Position.Row = row;
-                figureToSwap.Position.Column = column;
+                figureToSwap.Position.Row = _selectedFigure.Position.Row;
+                figureToSwap.Position.Column = _selectedFigure.Position.Column;
                 figureToSwap.Untargetable = row == -1;
             }
 
@@ -278,8 +280,6 @@ public class BoardManager : MonoBehaviour
 
     private void DrawChessBoard()
     {
-
-
         Vector3 widthLine = Vector3.right * 8 * BoxSize;
         Vector3 heightLine = Vector3.forward * 9 * BoxSize;
 

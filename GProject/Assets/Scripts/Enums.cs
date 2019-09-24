@@ -32,4 +32,28 @@
 
 
     }
+
+    public enum TargetingSystem
+    {
+        Target,
+        ClosestEnemy,
+        HighestEnemyDps,
+        LowestAllyHp,
+        Self
+    }
+
+    public enum DamageType
+    {
+        Physical,
+        Magical,
+        True
+    }
+
+    public enum AbiliyType
+    {
+        Target,
+        AreaOfEffect,
+        Bouncing,
+        DamageBehindEnemy
+    }
 }
