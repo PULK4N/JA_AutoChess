@@ -44,16 +44,9 @@
 
     public enum DamageType
     {
+        none,
         Physical,
         Magical,
         True
-    }
-
-    public enum AbiliyType
-    {
-        Target,
-        AreaOfEffect,
-        Bouncing,
-        DamageBehindEnemy
     }
 }

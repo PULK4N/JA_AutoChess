@@ -5,9 +5,12 @@ public abstract class Unit
     public struct Properties
     {
         public int Range;
+        public int AbilityRange;
         public float AttackSpeed;
         public float AttackDamage;
         public float AbilityPower;
+        public Enums.DamageType AutoAttackDamageType;
+        public Enums.DamageType AbilityDamageType;
 
         public float Health;
         public float Mana;
@@ -19,17 +22,18 @@ public abstract class Unit
 
         public float LifeSteal;
         public float SpellWamp;
+        //negative status
+        public byte Stunned;
+        public byte Silenced;
+        public byte Disarmed;
         //for special cases
         public byte IsInvounrable;
         public byte HasDamageReturn;
-
-        public List<Buff> Buffs;
 
         public Enums.Deity Deity;
         public Enums.Mythology Mythology;
 
         public int Cost;
-        public bool IsUntargetable;
 
         public delegate void MaxHpIncrease(float health);
         public event MaxHpIncrease OnMaxHpIncrease;
@@ -38,16 +42,19 @@ public abstract class Unit
         public static Properties operator +(Properties property, Properties buff)
         {
             property.Range += buff.Range;
-            property.AttackSpeed += buff.AttackSpeed;
+            property.AbilityRange += buff.Range;                         // Range also buffs ability range
+            property.AttackSpeed *= (100 + buff.AttackSpeed) / 100;      // Attack speed adds to itself in percentage
             property.AttackDamage += buff.AttackDamage;
             property.AbilityPower += buff.AbilityPower;
+            if (buff.AutoAttackDamageType != Enums.DamageType.none)
+                property.AutoAttackDamageType = buff.AutoAttackDamageType;
+            if (buff.AbilityDamageType != Enums.DamageType.none)
+                property.AbilityDamageType = buff.AbilityDamageType;
 
             property.Health += buff.Health;
             if (buff.Health > 0)
                 property.OnMaxHpIncrease(buff.Health);
             property.Mana += buff.Mana;
-            if (buff.Mana < 0)
-                property.OnMaxHpIncrease(buff.Mana);
             property.Armor += buff.Armor;
             property.MagicResist += buff.MagicResist;
             property.Shield += buff.Shield;
@@ -56,6 +63,10 @@ public abstract class Unit
 
             property.LifeSteal += buff.LifeSteal;
             property.SpellWamp += buff.SpellWamp;
+
+            property.Stunned += buff.Stunned;
+            property.Silenced += buff.Silenced;
+            property.Disarmed += buff.Disarmed;
 
             property.IsInvounrable += buff.IsInvounrable;
             property.HasDamageReturn += buff.HasDamageReturn;
@@ -66,6 +77,8 @@ public abstract class Unit
         public static Properties operator -(Properties property, Properties buff)
         {
             property.Range -= buff.Range;
+            property.AbilityRange -= buff.Range;                       // Range also buffs ability range
+            property.AttackSpeed /= 1 + buff.AttackSpeed;              // Attack speed adds to itself in percentage
             property.AttackDamage -= buff.AttackDamage;
             property.AbilityPower -= buff.AbilityPower;
 
@@ -90,15 +103,21 @@ public abstract class Unit
     public Unit()
     {
         Stats.OnMaxHpIncrease += hp => CurrentHealth += hp;
-        Stats.OnMaxManaIncrease += mana => CurrentMana += mana;
+        BaseHealth = CurrentHealth = Stats.Health;
     }
     public Properties Stats;
     public float CurrentHealth;
     public float CurrentMana;
-    public Enums.DamageType AutoAttackDamageType;
+
+    public readonly float BaseHealth;
 
     public abstract Attack AutoAttack();
 
     public abstract Attack Ability();
 
+    public List<Buff> Buffs;
+
+    public abstract void MakeMeAOneStar();
+    public abstract void MakeMeATwoStar();
+    public abstract void MakeMeAThreeStar();
 }

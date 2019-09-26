@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 
 public class Figure : MonoBehaviour
@@ -19,20 +20,72 @@ public class Figure : MonoBehaviour
     public string Owner { get; set; }
 
     public int Range { get { return unit.Stats.Range; } }
+    public float CurrentHealth { get { return unit.CurrentHealth; } }
 
     private Figure _target;
     public Figure Target { get => _target; }
 
+    private float _lastAttacked = 0;
     public void AttackOrMove()
     {
-        int maxManaGainPerAttack = 10;
-        //unit.CurrentMana += Mathf.Min(maxManaGainPerAttack, unit.CurrentHealth / unit.Stats.AttackDamage);
+        if (Time.realtimeSinceStartup < _lastAttacked + unit.Stats.AttackSpeed * 1000)
+            return;
+
+        if (unit.Stats.Stunned > 0)
+            return;
+
+        _lastAttacked = Time.realtimeSinceStartup;
+
+        if (unit.CurrentMana >= unit.Stats.Mana && unit.Stats.Silenced <= 0)
+        {
+            if (Dijkstra.EnemyInsideRange(this, unit.Stats.AbilityRange) == null)
+                EnemyOutsideRange();
+            Attack attack =unit.Ability();
+            return;
+        }
+        if(!_target.Untargetable && Dijkstra.IsEnemyInRange(this, _target))
+        {
+            if (unit.Stats.Disarmed <= 0)
+            {
+                int maxManaGainPerAttack = 10;
+                unit.CurrentMana += Mathf.Min(maxManaGainPerAttack, unit.Stats.Health / unit.Stats.AttackDamage);
+                Attack attack=unit.AutoAttack();
+                return;
+            }
+        }
+        else
+        {
+            Figure nextTarget = Dijkstra.EnemyInsideRange(this, Range);
+            if (nextTarget == null)
+                EnemyOutsideRange();
+            else
+                _target = nextTarget;
+        }
     }
 
-    public float TakeDamage(Enums.DamageType damageType, float damage, out float damageReturn)
+    private void EnemyOutsideRange()
+    {
+        Point nextPosition = Dijkstra.FindNextStep(this);
+        OnMove(this, nextPosition.X, nextPosition.Y);
+        Position.Row = nextPosition.X;
+        Position.Column = nextPosition.Y;
+    }
+
+    public delegate void Move(Figure sender, int nextRow, int nextColumn);
+    public event Move OnMove;
+
+    public float TakeDamage(Enums.DamageType damageType, float damage, out float damageReturn, List<Buff> buffs = null)
+    {
+        damageReturn = 0;
+        float damageDealt = TakeDamage(damageType, damage, buffs);
+        if (unit.Stats.HasDamageReturn > 0)
+            damageReturn = damage - damageDealt;
+        return damageDealt;
+    }
+
+    public float TakeDamage(Enums.DamageType damageType, float damage, List<Buff> buffs = null)
     {
         float damageDealt;
-        damageReturn = 0;
 
         if (Untargetable || unit.Stats.IsInvounrable > 0)
             return 0;
@@ -42,15 +95,16 @@ public class Figure : MonoBehaviour
         if (damageExceedsShield > 0)
             unit.CurrentHealth -= damageExceedsShield;
 
-        if (unit.Stats.HasDamageReturn > 0)
-            damageReturn = damage - damageDealt;
-
         if (unit.CurrentHealth <= 0)
             Die();
 
-        unit.CurrentMana += Mathf.Min(50, unit.Stats.Mana / 100 * (damage / unit.Stats.Health - (damageDealt / damage) / 5));
+        unit.CurrentMana += Mathf.Min(50, unit.Stats.Mana / 100 * (damage / unit.BaseHealth));
 
-        return damageDealt;
+        if (buffs != null)
+            foreach (Buff buff in buffs)
+                AddBuff(buff);
+
+            return damageDealt;
     }
 
     private float CalculateDamage(Enums.DamageType damageType, float damage)
@@ -73,6 +127,20 @@ public class Figure : MonoBehaviour
         return damageDealt;
     }
 
+    private void AddBuff(Buff buff)
+    {
+        foreach (Buff alreadyAppliedBuff in unit.Buffs)
+            if (alreadyAppliedBuff.GetType() == buff.GetType())
+            {
+                float damage = alreadyAppliedBuff.AddStack();
+                TakeDamage(alreadyAppliedBuff.DamageType, damage);
+                return;
+            }
+        unit.Buffs.Add(buff);
+        unit.Stats += buff.BuffStats;
+        buff.OnExpire += o => unit.Stats -= o.BuffStats;
+    }
+
     public int DPS { get; set; }
 
     public void DamageFeedback(Enums.DamageType damageType, float damage)
@@ -93,7 +161,7 @@ public class Figure : MonoBehaviour
         }
     }
 
-    public void Heal(float health)
+    public void Heal(float health, List<Buff> buffs = null)
     {
         unit.CurrentHealth += health;
         if (unit.CurrentHealth > unit.Stats.Health)
@@ -107,7 +175,25 @@ public class Figure : MonoBehaviour
         OnDeath(this);
     }
 
-    public delegate void _delegate(Figure sender);
+    private Place _matchStartingPosition;
+    public Place MatchStartingPosition { get => _matchStartingPosition; }
+    public void Restart()
+    {
+        Untargetable = true;
+        unit.Buffs.ForEach(b => b.Dispell());
+        unit.Buffs.Clear();
+        OnMove(this, _matchStartingPosition.Row, _matchStartingPosition.Column);
+        Position.Row = _matchStartingPosition.Row;
+        Position.Column = _matchStartingPosition.Column;
+        unit.CurrentHealth = unit.Stats.Health;
+        unit.CurrentMana = 0;
+    }
 
-    public event _delegate OnDeath;
+    public void PrepareForBattle()
+    {
+        Untargetable = false;
+    }
+
+    public delegate void Death(Figure sender);
+    public event Death OnDeath;
 }

@@ -99,12 +99,36 @@ public class BoardManager : MonoBehaviour
                 FigureOnBoard.AddComponent<Figure>();
                 FigureOnBoard.GetComponent<Figure>().Owner = Owner;
                 FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
+                FigureOnBoard.GetComponent<Figure>().OnMove += (f, nextRow, nextColumn) =>
+                {
+                    Figures[f.Position.Row, f.Position.Column] = null;
+                    Figures[nextRow, nextColumn] = f;
+                };
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
                 break;
             }
         }
+    }
+
+    public void PrepareForBattle()
+    {
+        foreach (GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            figure.PrepareForBattle();
+        }
+    }
+
+    public void RecoverFromBattle()
+    {
+        foreach (GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            figure.Restart();
+        }
+        SpawnAllChessFigures();
     }
 
     private void SpawnChessFigure(int index, int row, int column)

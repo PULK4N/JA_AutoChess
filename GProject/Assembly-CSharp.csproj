@@ -80,6 +80,7 @@
     <Compile Include="Assets\Scripts\BoardPieceScripts\Figure.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\MatchMaking.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\Piece.cs" />
+    <Compile Include="Assets\Scripts\BoardPieceScripts\Spell.cs" />
     <Compile Include="Assets\Scripts\BoardPieceScripts\Unit.cs" />
     <Compile Include="Assets\Scripts\Enums.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
