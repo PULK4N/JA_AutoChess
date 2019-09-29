@@ -85,25 +85,23 @@ public class BoardManager : MonoBehaviour
         {
             if (Figures[-1, i] == null)
             {
-                GameObject FigureOnBoard = new GameObject();
-                FigureOnBoard.name = unitName + "Figure";
-
-                GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-                GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-                go.transform.SetParent(FigureOnBoard.transform);
-
-                GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
-                GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
-                go1.transform.SetParent(FigureOnBoard.transform);
-
-                FigureOnBoard.AddComponent<Figure>();
-                FigureOnBoard.GetComponent<Figure>().Owner = Owner;
+                GameObject FigureOnBoard = FigureManager.CreateFigure(unitName);
+                FigureOnBoard.GetComponent<Figure>().Untargetable = true;
+                FigureOnBoard.GetComponent<Figure>().Owner = "a"+i;
                 FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
                 FigureOnBoard.GetComponent<Figure>().OnMove += (f, nextRow, nextColumn) =>
                 {
                     Figures[f.Position.Row, f.Position.Column] = null;
                     Figures[nextRow, nextColumn] = f;
+                    f.gameObject.transform.position = GetTileCenter(nextRow, nextColumn);
                 };
+
+                if (a == null)
+                    a = FigureOnBoard.GetComponent<Figure>();
+                if(b==null)
+                    b= FigureOnBoard.GetComponent<Figure>();
+                if(c==null)
+                    c= FigureOnBoard.GetComponent<Figure>();
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
@@ -166,7 +164,9 @@ public class BoardManager : MonoBehaviour
 
         Dijkstra.SetGraph(Figures);
     }
-
+    Figure a=null;
+    Figure b=null;
+    Figure c=null;
     private void Update()
     {
         DrawChessBoard();
@@ -182,6 +182,18 @@ public class BoardManager : MonoBehaviour
                     _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
                 }
             }
+        }
+
+        if (Input.GetKeyDown("up"))
+        {
+            MatchManager.Instance.MatchState = Enums.MatchState.Battle;
+        }
+
+        if (Input.GetKeyDown("down"))
+        {
+            //List< System.Drawing.Point> points= Dijkstra.FindNextStep(a);
+            //foreach (System.Drawing.Point point in points)
+            //    boardTiles[point.X, point.Y].ChangeColor(Color.blue);
         }
 
         if (Input.GetMouseButton(0))
@@ -216,16 +228,6 @@ public class BoardManager : MonoBehaviour
                 if (_selectedFigure != null)
                     MoveFigure(selectionRow, selectionColumn);
             }
-        }
-
-        if(Input.GetKeyDown("down"))
-        {
-            Figures[0, 0].Die();
-        }
-
-        if (Input.GetKeyDown("up"))
-        {
-            SpawnAllChessFigures();
         }
     }
 

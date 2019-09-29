@@ -49,4 +49,10 @@
         Magical,
         True
     }
+
+    public enum MatchState
+    {
+        Preparation,
+        Battle
+    }
 }

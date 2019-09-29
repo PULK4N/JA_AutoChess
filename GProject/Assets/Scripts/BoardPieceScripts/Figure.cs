@@ -13,43 +13,55 @@ public class Figure : MonoBehaviour
     public Place Position;
     public bool Untargetable;
 
-    private Unit unit;
-    private Piece piece;
-    private int cost;
+    public Unit Unit;
+    public Piece Piece;
+    public FigureUIManager FigureUIManager;
+    public int Cost;
 
     public string Owner { get; set; }
 
-    public int Range { get { return unit.Stats.Range; } }
-    public float CurrentHealth { get { return unit.CurrentHealth; } }
+    public int Range { get { return Unit.Stats.Range; } }
+    public float CurrentHealth { get { return Unit.CurrentHealth; } }
 
     private Figure _target;
     public Figure Target { get => _target; }
 
+    public void Update()
+    {
+        AttackOrMove();
+    }
+
     private float _lastAttacked = 0;
     public void AttackOrMove()
     {
-        if (Time.realtimeSinceStartup < _lastAttacked + unit.Stats.AttackSpeed * 1000)
+        if (MatchManager.Instance.MatchState == Enums.MatchState.Preparation)
             return;
 
-        if (unit.Stats.Stunned > 0)
+        if (Untargetable)
             return;
 
-        _lastAttacked = Time.realtimeSinceStartup;
+        if (Time.time <_lastAttacked + Unit.Stats.AttackSpeed)
+            return;
 
-        if (unit.CurrentMana >= unit.Stats.Mana && unit.Stats.Silenced <= 0)
+        if (Unit.Stats.Stunned > 0)
+            return;
+
+        _lastAttacked = Time.time;
+
+        if (Unit.CurrentMana >= Unit.Stats.Mana && Unit.Stats.Silenced <= 0)
         {
-            if (Dijkstra.EnemyInsideRange(this, unit.Stats.AbilityRange) == null)
+            if (Dijkstra.EnemyInsideRange(this, Unit.Stats.AbilityRange) == null)
                 EnemyOutsideRange();
-            Attack attack =unit.Ability();
+            Attack attack =Unit.Ability();
             return;
         }
-        if(!_target.Untargetable && Dijkstra.IsEnemyInRange(this, _target))
+        if (_target != null && !_target.Untargetable && Dijkstra.IsEnemyInRange(this, _target))
         {
-            if (unit.Stats.Disarmed <= 0)
+            if (Unit.Stats.Disarmed <= 0)
             {
                 int maxManaGainPerAttack = 10;
-                unit.CurrentMana += Mathf.Min(maxManaGainPerAttack, unit.Stats.Health / unit.Stats.AttackDamage);
-                Attack attack=unit.AutoAttack();
+                Unit.CurrentMana += Mathf.Min(maxManaGainPerAttack, Unit.Stats.Health / Unit.Stats.AttackDamage);
+                Attack attack = Unit.AutoAttack();
                 return;
             }
         }
@@ -66,6 +78,8 @@ public class Figure : MonoBehaviour
     private void EnemyOutsideRange()
     {
         Point nextPosition = Dijkstra.FindNextStep(this);
+        if (nextPosition.X < 0 || nextPosition.Y < 0)
+            return;
         OnMove(this, nextPosition.X, nextPosition.Y);
         Position.Row = nextPosition.X;
         Position.Column = nextPosition.Y;
@@ -78,8 +92,9 @@ public class Figure : MonoBehaviour
     {
         damageReturn = 0;
         float damageDealt = TakeDamage(damageType, damage, buffs);
-        if (unit.Stats.HasDamageReturn > 0)
+        if (Unit.Stats.HasDamageReturn > 0)
             damageReturn = damage - damageDealt;
+
         return damageDealt;
     }
 
@@ -87,22 +102,24 @@ public class Figure : MonoBehaviour
     {
         float damageDealt;
 
-        if (Untargetable || unit.Stats.IsInvounrable > 0)
+        if (Untargetable || Unit.Stats.IsInvounrable > 0)
             return 0;
 
         damageDealt = CalculateDamage(damageType, damage);
-        float damageExceedsShield = unit.Stats.Shield -= damage;
+        float damageExceedsShield = Unit.Stats.Shield -= damage;
         if (damageExceedsShield > 0)
-            unit.CurrentHealth -= damageExceedsShield;
+            Unit.CurrentHealth -= damageExceedsShield;
 
-        if (unit.CurrentHealth <= 0)
+        if (Unit.CurrentHealth <= 0)
             Die();
 
-        unit.CurrentMana += Mathf.Min(50, unit.Stats.Mana / 100 * (damage / unit.BaseHealth));
+        Unit.CurrentMana += Mathf.Min(50, Unit.Stats.Mana / 100 * (damage / Unit.BaseHealth));
 
         if (buffs != null)
             foreach (Buff buff in buffs)
                 AddBuff(buff);
+
+        FigureUIManager.SetHealth(Unit.Stats.Health / Unit.CurrentHealth);
 
             return damageDealt;
     }
@@ -113,32 +130,32 @@ public class Figure : MonoBehaviour
         switch (damageType)
         {
             case Enums.DamageType.Magical:
-                damageDealt = damage * 30 / (30 + unit.Stats.MagicResist);
+                damageDealt = damage * 30 / (30 + Unit.Stats.MagicResist);
                 break;
             case Enums.DamageType.Physical:
-                damageDealt = damage * 30 / (30 + unit.Stats.Armor);
+                damageDealt = damage * 30 / (30 + Unit.Stats.Armor);
                 break;
             default:
                 damageDealt = damage;
                 break;
         }
-        damageDealt -= unit.Stats.DamageReduction;
-        damageDealt *= (100 - unit.Stats.DamageReductionPercentage) / 100;
+        damageDealt -= Unit.Stats.DamageReduction;
+        damageDealt *= (100 - Unit.Stats.DamageReductionPercentage) / 100;
         return damageDealt;
     }
 
     private void AddBuff(Buff buff)
     {
-        foreach (Buff alreadyAppliedBuff in unit.Buffs)
+        foreach (Buff alreadyAppliedBuff in Unit.Buffs)
             if (alreadyAppliedBuff.GetType() == buff.GetType())
             {
                 float damage = alreadyAppliedBuff.AddStack();
                 TakeDamage(alreadyAppliedBuff.DamageType, damage);
                 return;
             }
-        unit.Buffs.Add(buff);
-        unit.Stats += buff.BuffStats;
-        buff.OnExpire += o => unit.Stats -= o.BuffStats;
+        Unit.Buffs.Add(buff);
+        Unit.Stats += buff.BuffStats;
+        buff.OnExpire += o => Unit.Stats -= o.BuffStats;
     }
 
     public int DPS { get; set; }
@@ -149,12 +166,12 @@ public class Figure : MonoBehaviour
         switch(damageType)
         {
             case Enums.DamageType.Physical:
-                if (unit.Stats.LifeSteal > 0)
-                    Heal(damage * unit.Stats.LifeSteal / 100);
+                if (Unit.Stats.LifeSteal > 0)
+                    Heal(damage * Unit.Stats.LifeSteal / 100);
                 break;
             case Enums.DamageType.Magical:
-                if (unit.Stats.SpellWamp > 0)
-                    Heal(damage * unit.Stats.SpellWamp / 100);
+                if (Unit.Stats.SpellWamp > 0)
+                    Heal(damage * Unit.Stats.SpellWamp / 100);
                 break;
             default:
                 break;
@@ -163,9 +180,9 @@ public class Figure : MonoBehaviour
 
     public void Heal(float health, List<Buff> buffs = null)
     {
-        unit.CurrentHealth += health;
-        if (unit.CurrentHealth > unit.Stats.Health)
-            unit.CurrentHealth = unit.Stats.Health;
+        Unit.CurrentHealth += health;
+        if (Unit.CurrentHealth > Unit.Stats.Health)
+            Unit.CurrentHealth = Unit.Stats.Health;
     }
 
     public void Die()
@@ -180,18 +197,20 @@ public class Figure : MonoBehaviour
     public void Restart()
     {
         Untargetable = true;
-        unit.Buffs.ForEach(b => b.Dispell());
-        unit.Buffs.Clear();
+        Unit.Buffs.ForEach(b => b.Dispell());
+        Unit.Buffs.Clear();
         OnMove(this, _matchStartingPosition.Row, _matchStartingPosition.Column);
         Position.Row = _matchStartingPosition.Row;
         Position.Column = _matchStartingPosition.Column;
-        unit.CurrentHealth = unit.Stats.Health;
-        unit.CurrentMana = 0;
+        Unit.CurrentHealth = Unit.Stats.Health;
+        Unit.CurrentMana = 0;
     }
 
     public void PrepareForBattle()
     {
         Untargetable = false;
+        _matchStartingPosition.Row = Position.Row;
+        _matchStartingPosition.Column = Position.Column;
     }
 
     public delegate void Death(Figure sender);

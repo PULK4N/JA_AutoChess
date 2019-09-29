@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
-public abstract class Unit
+public abstract class Unit : MonoBehaviour
 {
     public struct Properties
     {
@@ -100,16 +101,17 @@ public abstract class Unit
         }
     }
 
-    public Unit()
+    public void Start()
     {
         Stats.OnMaxHpIncrease += hp => CurrentHealth += hp;
-        BaseHealth = CurrentHealth = Stats.Health;
+        _baseHealth = CurrentHealth = Stats.Health;
     }
     public Properties Stats;
     public float CurrentHealth;
     public float CurrentMana;
 
-    public readonly float BaseHealth;
+    private float _baseHealth;
+    public float BaseHealth { get => _baseHealth; }
 
     public abstract Attack AutoAttack();
 

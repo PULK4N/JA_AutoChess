@@ -190,7 +190,7 @@ public class Dijkstra
         while (EnemyInsideRangeOptimised(source, source.Range, u.X, u.Y) == null)
         {
             u = MinimumDistance(distance, shortestPathTreeSet);
-            if(u.X <0 || u.Y<0)
+            if (u.X < 0 || u.Y < 0)
                 return new Point(-1, -1); // path not found
 
             if (distance[u.X, u.Y] == int.MaxValue)
@@ -219,9 +219,10 @@ public class Dijkstra
         List<Point> path = new List<Point>();
         path.Add(goal);
         int cnt = 0;
-            Point pathNode = new Point();
-        while (distance[x,y]!=0)
+        Point pathNode = new Point();
+        while (distance[x, y] != 0)
         {
+            Debug.Log(x + "," + y);
             int place = 0;
             for (int i = 0; i < _possibleDir; ++i)
             {
@@ -231,7 +232,10 @@ public class Dijkstra
                     if (distance[x, y] == 1 + distance[xdx, ydy] && (_graph[xdx, ydy] == null || _graph[xdx, ydy] ==source))
                     {
                         if(_graph[xdx, ydy] == source)
-                            break;
+                        {
+                            path.Reverse();
+                            return path;
+                        }
                         pathNode.X = xdx;
                         pathNode.Y = ydy;
                         place = i;
@@ -240,13 +244,10 @@ public class Dijkstra
             path.Add(pathNode);
             x += dx[place];
             y += dy[place];
-            
+            Debug.Log(x + "," + y + "," +place);
             if (cnt++ >= 10)
                 break;
         }
-        
-        foreach (Point point in path)
-            Debug.Log(point.X + "," + point.Y);
         path.Reverse();
         return path;
     }

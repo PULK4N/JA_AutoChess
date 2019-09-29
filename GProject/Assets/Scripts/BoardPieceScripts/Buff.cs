@@ -27,7 +27,7 @@ public abstract class Buff : MonoBehaviour
 
     public void Commence()
     {
-        _startTime = Time.realtimeSinceStartup;
+        _startTime = Time.time;
     }
 
     public delegate void Expire(Buff sender);
@@ -36,7 +36,7 @@ public abstract class Buff : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if ((_startTime - Time.realtimeSinceStartup) / 1000 > _duration)
+        if (_startTime - Time.time > _duration)
         {
             Dispell();
         }

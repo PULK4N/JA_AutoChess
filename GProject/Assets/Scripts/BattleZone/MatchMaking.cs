@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MatchMaking : MonoBehaviour
+public static class MatchMaking
 {
-    private List<GameObject> PreviousListOfMatches = new List<GameObject>();
+    private static List<GameObject> PreviousListOfMatches = new List<GameObject>();
 
-    public List<GameObject> GenerateMatches(List<GameObject> ListOfPlayers)
+    public static List<GameObject> GenerateMatches(List<GameObject> ListOfPlayers)
     {
         List<GameObject> CoppiedListOfPlayers = new List<GameObject>(ListOfPlayers);
         List<GameObject> ListOfMatches = new List<GameObject>();
