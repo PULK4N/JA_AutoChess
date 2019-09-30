@@ -14,6 +14,11 @@ public class thor : Unit
         throw new System.NotImplementedException();
     }
 
+    public override string GetAbilityDescription()
+    {
+        throw new System.NotImplementedException();
+    }
+
     public override void MakeMeAOneStar()
     {
         throw new System.NotImplementedException();
