@@ -5,25 +5,33 @@ using UnityEngine;
 
 public class FigureManager : MonoBehaviour
 {
-    public static GameObject CreateFigure(string name)
+    public static GameObject CreateFigure(GameObject unit)
     {
         GameObject figureOnBoard = new GameObject();
-        figureOnBoard.name = name + "Figure";
+        figureOnBoard.name = unit.GetComponent<Unit>().GetType().Name + "Figure";
 
-        GameObject unitPrefab = Resources.Load(name + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-        GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-        go.AddComponent(Type.GetType(name));
-        go.transform.SetParent(figureOnBoard.transform);
+        unit.SetActive(true);
+
+        unit.transform.SetParent(figureOnBoard.transform);
 
         GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
-        GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
-        go1.transform.SetParent(figureOnBoard.transform);
+        GameObject UI = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
+        UI.transform.SetParent(figureOnBoard.transform);
 
         figureOnBoard.AddComponent<Figure>();
-        figureOnBoard.GetComponent<Figure>().Unit = go.GetComponent<Unit>();
-        figureOnBoard.GetComponent<Figure>().FigureUIManager = go1.GetComponent<FigureUIManager>();
+        figureOnBoard.GetComponent<Figure>().Unit = unit.GetComponent<Unit>();
+        figureOnBoard.GetComponent<Figure>().FigureUIManager = UI.GetComponent<FigureUIManager>();
 
         return figureOnBoard;
+    }
+
+    public static void Disassemble(GameObject figure)
+    {
+        GameObject unit = figure.GetComponent<Figure>().Unit.gameObject;
+        figure.transform.DetachChildren();
+        unit.transform.SetParent(null);
+        figure.GetComponent<Figure>().Unit = null;
+        Destroy(figure);
     }
 
     void Awake()

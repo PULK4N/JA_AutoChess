@@ -79,15 +79,15 @@ public class BoardManager : MonoBehaviour
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
-    public void SpawnFigure(string unitName)
+    public void SpawnFigure(GameObject unit)
     {
         for (int i = 0; i < 8; ++i)
         {
             if (Figures[-1, i] == null)
             {
-                GameObject FigureOnBoard = FigureManager.CreateFigure(unitName);
+                GameObject FigureOnBoard = FigureManager.CreateFigure(unit);
                 FigureOnBoard.GetComponent<Figure>().Untargetable = true;
-                FigureOnBoard.GetComponent<Figure>().Owner = "a"+i;
+                FigureOnBoard.GetComponent<Figure>().Owner = "a"+i;   // To-Do: change owner to board.owner
                 FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
                 FigureOnBoard.GetComponent<Figure>().OnMove += (f, nextRow, nextColumn) =>
                 {
@@ -96,18 +96,18 @@ public class BoardManager : MonoBehaviour
                     f.gameObject.transform.position = GetTileCenter(nextRow, nextColumn);
                 };
 
-                if (a == null)
-                    a = FigureOnBoard.GetComponent<Figure>();
-                if(b==null)
-                    b= FigureOnBoard.GetComponent<Figure>();
-                if(c==null)
-                    c= FigureOnBoard.GetComponent<Figure>();
-
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
                 break;
             }
         }
+    }
+
+    public void SellFigure(GameObject figure)
+    {
+        _activeChessFigures.Remove(figure);
+        Figures[figure.GetComponent<Figure>().Position.Row, figure.GetComponent<Figure>().Position.Column] = null;
+        UnitShop.SellUnit(figure);
     }
 
     public void PrepareForBattle()
@@ -152,9 +152,6 @@ public class BoardManager : MonoBehaviour
     
     private void Start()
     {
-        Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
-        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
-
         boardTiles = new BoardTiles();
         SetUpTheTiles();
 
@@ -163,15 +160,46 @@ public class BoardManager : MonoBehaviour
         _activeChessFigures = new List<GameObject>();
 
         Dijkstra.SetGraph(Figures);
+
+        MatchManager.Instance.OnStateChage += matchState =>
+        {
+            if (matchState == Enums.MatchState.Preparation)
+                RecoverFromBattle();
+            if (matchState == Enums.MatchState.Battle)
+                PrepareForBattle();
+        };
     }
-    Figure a=null;
-    Figure b=null;
-    Figure c=null;
+
     private void Update()
     {
         DrawChessBoard();
         UpdateSelection();
 
+        if (MatchManager.Instance.MatchState != Enums.MatchState.Preparation)
+            return;
+
+        if (Input.GetKeyDown("up"))
+        {
+
+        }
+
+        if (Input.GetKeyDown("down"))
+        {
+
+        }
+
+        FigurePlacement();
+    }
+
+    private void FigurePlacement()
+    {
+        SelectFigureCommand();
+        MoveFigureWhileSelected();
+        PlaceFigure();
+    }
+
+    private void SelectFigureCommand()
+    {
         if (Input.GetMouseButtonDown(0))
         {
             if (selectionColumn >= 0 && selectionRow >= -1)
@@ -183,19 +211,10 @@ public class BoardManager : MonoBehaviour
                 }
             }
         }
+    }
 
-        if (Input.GetKeyDown("up"))
-        {
-            MatchManager.Instance.MatchState = Enums.MatchState.Battle;
-        }
-
-        if (Input.GetKeyDown("down"))
-        {
-            //List< System.Drawing.Point> points= Dijkstra.FindNextStep(a);
-            //foreach (System.Drawing.Point point in points)
-            //    boardTiles[point.X, point.Y].ChangeColor(Color.blue);
-        }
-
+    private void MoveFigureWhileSelected()
+    {
         if (Input.GetMouseButton(0))
         {
             if (selectionColumn >= 0 && selectionRow >= -1)
@@ -209,14 +228,17 @@ public class BoardManager : MonoBehaviour
                     boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
                     _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
                 }
-                if(boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
+                if (boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
                 {
                     _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
                     _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
                 }
             }
         }
+    }
 
+    private void PlaceFigure()
+    {
         if (Input.GetMouseButtonUp(0))
         {
             if (selectionColumn >= 0 && selectionRow >= -1)

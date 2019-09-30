@@ -7,7 +7,8 @@ public class UnitImageClick : MonoBehaviour
 {
     public void OnClicked(Image image)
     {
-        GameObject.Find("ChessBoard").GetComponent<BoardManager>().SpawnFigure(image.sprite.name);
-        //image.enabled = false;
+        if (!UnitShop.BuyUnit(image.sprite.name))
+            return;
+        image.enabled = false;
     }
 }

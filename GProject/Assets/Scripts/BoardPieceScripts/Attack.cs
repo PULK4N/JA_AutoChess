@@ -63,12 +63,10 @@ public class Attack : MonoBehaviour
     void Update()
     {
         float damageReturn = 0;
-        Position = new Vector3(
-            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * ((Time.realtimeSinceStartup - _startingTime) / 1000),
-            Position.y,
-            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * ((Time.realtimeSinceStartup - _startingTime) / 1000));
 
-        if (Position == _target.gameObject.transform.position) // doubt this will work
+        if (Position == _target.gameObject.transform.position ||
+            Polarity(_target.transform.position.x - Position.x) != Polarity(_target.transform.position.x - _source.transform.position.x) ||
+            Polarity(_target.transform.position.y - Position.y) != Polarity(_target.transform.position.y - _source.transform.position.y)) // doubt this will work
         {
             _source.DamageFeedback(_damageType, _target.TakeDamage(_damageType, _projectileDamage, out damageReturn, Buffs));
             _spell.Activate();
@@ -78,5 +76,19 @@ public class Attack : MonoBehaviour
             }
             Destroy(this);
         }
+
+        Position = new Vector3(
+            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * (Time.time - _startingTime),
+            Position.y,
+            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * (Time.time - _startingTime));
+    }
+
+    private int Polarity(float number)
+    {
+        if (number > 0)
+            return 1;
+        if (number < 0)
+            return -1;
+        return 0;
     }
 }

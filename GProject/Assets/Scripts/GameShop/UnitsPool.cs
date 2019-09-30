@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewBehaviourScript
+public static class UnitsPool
 {
     #region DeclaringRandAndLists
-    System.Random rand = new System.Random(System.Guid.NewGuid().GetHashCode());
-    public static List<GameObject> Common = new List<GameObject>();
-    public static List<GameObject> UnCommon = new List<GameObject>();
+    private static System.Random rand = new System.Random(System.Guid.NewGuid().GetHashCode());
+    private static List<GameObject> Common = new List<GameObject>();
+    private static List<GameObject> UnCommon = new List<GameObject>();
     public static List<GameObject> Rare = new List<GameObject>();
     public static List<GameObject> Epic = new List<GameObject>();
     public static List<GameObject> Legendary = new List<GameObject>();
 
-    public static List<List<GameObject>> UnitTypes = new List<List<GameObject>>{ Common, UnCommon, Rare, Epic, Legendary };
+    public static List<List<GameObject>> UnitTypes = new List<List<GameObject>> { Common, UnCommon, Rare, Epic, Legendary };
     #endregion
 
     #region UnitsGatheringMatrix
-    int[,] UnitsGatheringMatrix = {
+    private static int[,] UnitsGatheringMatrix = {
 //     Common | UnCommon | Rare  | Epic  | Legendary
         {100,      0,        0,      0,     0 },                //Level 1
         {70,     100,        0,      0,     0 },                //Level 2
@@ -33,29 +33,25 @@ public class NewBehaviourScript
 
     #endregion
 
-    public (GameObject Unit1, GameObject Unit2, GameObject Unit3, GameObject Unit4, GameObject Unit5) GenerateUnits(int level)
+    public static List<GameObject> GenerateUnits(int level)
     {
-
-        #region OutPutBasedOnLevel
-        GameObject Unit1 = GetUnit(rand.Next(100), level);
-        GameObject Unit2 = GetUnit(rand.Next(100), level);
-        GameObject Unit3 = GetUnit(rand.Next(100), level);
-        GameObject Unit4 = GetUnit(rand.Next(100), level);
-        GameObject Unit5 = GetUnit(rand.Next(100), level);
-        #endregion
-
-        if (Unit1 != null && Unit2 != null && Unit3 != null && Unit4 != null && Unit5 != null)
+        List<GameObject> the5units = new List<GameObject>();
+        for (int i = 0; i < 5; i++)
         {
-            return (Unit1, Unit2, Unit3, Unit4, Unit5);
-        }
-        else
-        {
-            return (null, null, null, null, null);
+            the5units.Add(GetUnit(rand.Next(100), level));
         }
 
+        foreach (GameObject unit in the5units)
+        {
+            if (unit == null)
+            {
+                return null;
+            }
+        }
+        return the5units;
     }
 
-    public GameObject GetUnit(int RandomNumber,int level)
+    public static GameObject GetUnit(int RandomNumber, int level)
     {
         List<GameObject> ListOfUnits = null;
 
@@ -74,6 +70,7 @@ public class NewBehaviourScript
         {
             RandomNumber = rand.Next(ListOfUnits.Count);
             GameObject Unit = ListOfUnits[RandomNumber];
+            ListOfUnits.RemoveAt(RandomNumber);
             return Unit;
         }
         //if list is empty get another unit via recursion
@@ -82,5 +79,46 @@ public class NewBehaviourScript
             return GetUnit(RandomNumber, level);
         }
         return null;
+    }
+
+    public static void CreateUnit(string name)
+    {
+        GameObject unitPrefab = Resources.Load(name + "/" + "footman_Red", typeof(GameObject)) as GameObject;
+        GameObject go = MonoBehaviour.Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+        go.AddComponent(Type.GetType(name));
+        go.SetActive(false);
+    }
+
+    public static void PutUnitInPool(GameObject unit)
+    {
+        int rarity;
+        switch(unit.GetComponent<Unit>().Cost)
+        {
+            case 1:
+                rarity = 0;
+                break;
+            case 2:
+            case 3:
+                rarity = 1;
+                break;
+            case 4:
+            case 5:
+                rarity = 2;
+                break;
+            case 6:
+            case 7:
+                rarity = 3;
+                break;
+            default:
+                rarity = 4;
+                break;
+        }
+        List<GameObject> ListOfUnits = UnitTypes[rarity];
+        ListOfUnits.Add(unit);
+    }
+
+    public static void Initialise()
+    {
+
     }
 }

@@ -3,6 +3,30 @@ using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
 {
+    public void Start()
+    {
+        Stats.OnMaxHpIncrease += hp => CurrentHealth += hp;
+        _baseHealth = CurrentHealth = Stats.Health;
+    }
+
+    public int Cost;
+    public Properties Stats;
+    public float CurrentHealth;
+    public float CurrentMana;
+
+    private float _baseHealth;
+    public float BaseHealth { get => _baseHealth; }
+
+    public abstract Attack AutoAttack();
+
+    public abstract Attack Ability();
+
+    public List<Buff> Buffs;
+
+    public abstract void MakeMeAOneStar();
+    public abstract void MakeMeATwoStar();
+    public abstract void MakeMeAThreeStar();
+
     public struct Properties
     {
         public int Range;
@@ -34,8 +58,6 @@ public abstract class Unit : MonoBehaviour
         public Enums.Deity Deity;
         public Enums.Mythology Mythology;
 
-        public int Cost;
-
         public delegate void MaxHpIncrease(float health);
         public event MaxHpIncrease OnMaxHpIncrease;
         public delegate void MaxManaIncrease(float health);
@@ -55,7 +77,7 @@ public abstract class Unit : MonoBehaviour
             property.Health += buff.Health;
             if (buff.Health > 0)
                 property.OnMaxHpIncrease(buff.Health);
-            property.Mana += buff.Mana;
+            property.Mana *= (100 + buff.Mana) / 100;                     // Mana adds to itself in percentage
             property.Armor += buff.Armor;
             property.MagicResist += buff.MagicResist;
             property.Shield += buff.Shield;
@@ -84,7 +106,7 @@ public abstract class Unit : MonoBehaviour
             property.AbilityPower -= buff.AbilityPower;
 
             property.Health -= buff.Health;
-            property.Mana -= buff.Mana;
+            property.Mana /= 1 + buff.Mana;                            // Mana adds to itself in percentage
             property.Armor -= buff.Armor;
             property.MagicResist -= buff.MagicResist;
             property.Shield -= buff.Shield;
@@ -100,26 +122,4 @@ public abstract class Unit : MonoBehaviour
             return property;
         }
     }
-
-    public void Start()
-    {
-        Stats.OnMaxHpIncrease += hp => CurrentHealth += hp;
-        _baseHealth = CurrentHealth = Stats.Health;
-    }
-    public Properties Stats;
-    public float CurrentHealth;
-    public float CurrentMana;
-
-    private float _baseHealth;
-    public float BaseHealth { get => _baseHealth; }
-
-    public abstract Attack AutoAttack();
-
-    public abstract Attack Ability();
-
-    public List<Buff> Buffs;
-
-    public abstract void MakeMeAOneStar();
-    public abstract void MakeMeATwoStar();
-    public abstract void MakeMeAThreeStar();
 }
