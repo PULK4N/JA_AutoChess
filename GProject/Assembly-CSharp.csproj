@@ -85,7 +85,9 @@
     <Compile Include="Assets\Scripts\BoardPieceScripts\Unit.cs" />
     <Compile Include="Assets\Scripts\Enums.cs" />
     <Compile Include="Assets\Scripts\FigureManagement\FigureManager.cs" />
+    <Compile Include="Assets\Scripts\FigureManagement\FigurePieceToggle.cs" />
     <Compile Include="Assets\Scripts\FigureManagement\FigureSell.cs" />
+    <Compile Include="Assets\Scripts\FigureManagement\FigureTooltip.cs" />
     <Compile Include="Assets\Scripts\FigureManagement\FigureUIManager.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\GameManagerEvents.cs" />

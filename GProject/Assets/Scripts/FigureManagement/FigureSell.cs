@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class FigureSell : MonoBehaviour
 {
-    public void OnClicked(GameObject figure)
+    public delegate void SellClick();
+    public event SellClick OnSellClick;
+    public void OnClicked()
     {
-        GameObject.Find("ChessBoard").GetComponent<BoardManager>().SellFigure(figure);
+        OnSellClick();
     }
 }

@@ -55,12 +55,12 @@ public static class UnitShop
         //figure.GetComponent<Figure>().Cost
         GameObject unit = figure.GetComponent<Figure>().Unit.gameObject;
         FigureManager.Disassemble(figure);
+        unit.SetActive(false);
         ReturnUnitToPool(unit);
     }
 
     public static void ReturnUnitToPool(GameObject unit)
     {
-        unit.SetActive(false);
         UnitsPool.PutUnitInPool(unit);
     }
 }

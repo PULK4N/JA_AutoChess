@@ -26,9 +26,27 @@ public class Figure : MonoBehaviour
     private Figure _target;
     public Figure Target { get => _target; }
 
+    public delegate void Sell(GameObject figure);
+    public event Sell OnSell;
+    public void Start()
+    {
+        FigureUIManager.OnFigureSellClick += () => OnSell(this.gameObject);
+        FigureUIManager.OnPieceToggleClick += toggle => Piece.Toggle();
+        FigureUIManager.SetPieceToggleText(Piece);
+        FigureUIManager.SetSpellTooltip(Unit.GetAbilityDescription());
+        FigureUIManager.SetSpellImage(Unit);
+    }
+
     public void Update()
     {
         AttackOrMove();
+        UpdateHealthAndMana();
+    }
+
+    public void UpdateHealthAndMana()
+    {
+        FigureUIManager.SetHealth(Unit.Stats.Health / Unit.CurrentHealth);
+        FigureUIManager.SetMana(Unit.Stats.Mana / Unit.CurrentMana);
     }
 
     private float _lastAttacked = 0;
@@ -119,8 +137,6 @@ public class Figure : MonoBehaviour
             foreach (Buff buff in buffs)
                 AddBuff(buff);
 
-        FigureUIManager.SetHealth(Unit.Stats.Health / Unit.CurrentHealth);
-
             return damageDealt;
     }
 
@@ -185,6 +201,8 @@ public class Figure : MonoBehaviour
             Unit.CurrentHealth = Unit.Stats.Health;
     }
 
+    public delegate void Death(Figure sender);
+    public event Death OnDeath;
     public void Die()
     {
         this.gameObject.SetActive(false);
@@ -203,7 +221,7 @@ public class Figure : MonoBehaviour
         Position.Row = _matchStartingPosition.Row;
         Position.Column = _matchStartingPosition.Column;
         Unit.CurrentHealth = Unit.Stats.Health;
-        Unit.CurrentMana = 0;
+        Unit.CurrentMana = Unit.Stats.StartingMana;
     }
 
     public void PrepareForBattle()
@@ -211,8 +229,8 @@ public class Figure : MonoBehaviour
         Untargetable = false;
         _matchStartingPosition.Row = Position.Row;
         _matchStartingPosition.Column = Position.Column;
+        // To-Do: apply starting buffs
+        Unit.CurrentHealth = Unit.Stats.Health;
+        Unit.CurrentMana = Unit.Stats.StartingMana;
     }
-
-    public delegate void Death(Figure sender);
-    public event Death OnDeath;
 }

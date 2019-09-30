@@ -95,6 +95,7 @@ public class BoardManager : MonoBehaviour
                     Figures[nextRow, nextColumn] = f;
                     f.gameObject.transform.position = GetTileCenter(nextRow, nextColumn);
                 };
+                FigureOnBoard.GetComponent<Figure>().OnSell += figure => SellFigure(figure);
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
@@ -175,81 +176,93 @@ public class BoardManager : MonoBehaviour
         DrawChessBoard();
         UpdateSelection();
 
+        if (Input.GetMouseButtonDown(1))
+        {
+            HideSelectedFigureTooltip();
+            ShowSelectedFigureTooltip(selectionRow, selectionColumn);
+        }
+
         if (MatchManager.Instance.MatchState != Enums.MatchState.Preparation)
             return;
-
-        if (Input.GetKeyDown("up"))
-        {
-
-        }
-
-        if (Input.GetKeyDown("down"))
-        {
-
-        }
 
         FigurePlacement();
     }
 
+    private Figure _openTooltipFigure = null;
+    private void ShowSelectedFigureTooltip(int row, int column)
+    {
+        if (Figures[row, column] != null)
+            _openTooltipFigure = Figures[row, column];
+        _openTooltipFigure.FigureUIManager.ShowTooltip();
+    }
+
+    private void HideSelectedFigureTooltip()
+    {
+        if (_openTooltipFigure != null)
+            _openTooltipFigure.FigureUIManager.HideTooltip();
+    }
+
     private void FigurePlacement()
     {
-        SelectFigureCommand();
-        MoveFigureWhileSelected();
-        PlaceFigure();
+        if (Input.GetMouseButtonDown(0))
+        {
+            HideSelectedFigureTooltip();
+            SelectFigureCommand();
+        }
+        if (Input.GetMouseButton(0))
+        {
+            MoveFigureWhileSelected();
+        }
+        if (Input.GetMouseButtonUp(0))
+        {
+            PlaceFigure();
+        }
     }
 
     private void SelectFigureCommand()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (selectionColumn >= 0 && selectionRow >= -1)
         {
-            if (selectionColumn >= 0 && selectionRow >= -1)
+            if (_selectedFigure == null)
             {
-                if (_selectedFigure == null)
-                {
-                    SelectFigure(selectionRow, selectionColumn);
-                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
-                }
+                SelectFigure(selectionRow, selectionColumn);
+                _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
             }
         }
     }
 
     private void MoveFigureWhileSelected()
     {
-        if (Input.GetMouseButton(0))
+        if (selectionColumn >= 0 && selectionRow >= -1)
         {
-            if (selectionColumn >= 0 && selectionRow >= -1)
-            {
-                if (_selectedFigure != null)
-                {
-                    if (selectionRow > 3)
-                    {
-                        selectionRow = 3;
-                    }
-                    boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
-                    _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
-                }
-                if (boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
-                {
-                    _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
-                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
-                }
-            }
-        }
-    }
-
-    private void PlaceFigure()
-    {
-        if (Input.GetMouseButtonUp(0))
-        {
-            if (selectionColumn >= 0 && selectionRow >= -1)
+            if (_selectedFigure != null)
             {
                 if (selectionRow > 3)
                 {
                     selectionRow = 3;
                 }
-                if (_selectedFigure != null)
-                    MoveFigure(selectionRow, selectionColumn);
+                boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
+                _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
             }
+            if (boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
+            {
+                _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
+                _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
+            }
+        }
+    }
+
+
+    private void PlaceFigure()
+    {
+        if (selectionColumn >= 0 && selectionRow >= -1)
+        {
+            if (selectionRow > 3)
+            {
+                selectionRow = 3;
+            }
+            if (_selectedFigure != null)
+                MoveFigure(selectionRow, selectionColumn);
         }
     }
 

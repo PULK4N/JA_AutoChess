@@ -11,7 +11,6 @@ public class FigureManager : MonoBehaviour
         figureOnBoard.name = unit.GetComponent<Unit>().GetType().Name + "Figure";
 
         unit.SetActive(true);
-
         unit.transform.SetParent(figureOnBoard.transform);
 
         GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
@@ -28,10 +27,12 @@ public class FigureManager : MonoBehaviour
     public static void Disassemble(GameObject figure)
     {
         GameObject unit = figure.GetComponent<Figure>().Unit.gameObject;
+        GameObject UI = figure.GetComponent<Figure>().FigureUIManager.gameObject;
         figure.transform.DetachChildren();
         unit.transform.SetParent(null);
         figure.GetComponent<Figure>().Unit = null;
         Destroy(figure);
+        Destroy(UI);
     }
 
     void Awake()

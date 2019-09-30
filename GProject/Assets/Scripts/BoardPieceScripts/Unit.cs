@@ -21,6 +21,8 @@ public abstract class Unit : MonoBehaviour
 
     public abstract Attack Ability();
 
+    public abstract string GetAbilityDescription();
+
     public List<Buff> Buffs;
 
     public abstract void MakeMeAOneStar();
@@ -39,6 +41,7 @@ public abstract class Unit : MonoBehaviour
 
         public float Health;
         public float Mana;
+        public float StartingMana;
         public float Armor;
         public float MagicResist;
         public float Shield;
@@ -77,7 +80,8 @@ public abstract class Unit : MonoBehaviour
             property.Health += buff.Health;
             if (buff.Health > 0)
                 property.OnMaxHpIncrease(buff.Health);
-            property.Mana *= (100 + buff.Mana) / 100;                     // Mana adds to itself in percentage
+            property.Mana *= (100 + buff.Mana) / 100;                    // Mana adds to itself in percentage
+            property.StartingMana += buff.StartingMana;
             property.Armor += buff.Armor;
             property.MagicResist += buff.MagicResist;
             property.Shield += buff.Shield;
@@ -107,6 +111,7 @@ public abstract class Unit : MonoBehaviour
 
             property.Health -= buff.Health;
             property.Mana /= 1 + buff.Mana;                            // Mana adds to itself in percentage
+            property.StartingMana -= buff.StartingMana;
             property.Armor -= buff.Armor;
             property.MagicResist -= buff.MagicResist;
             property.Shield -= buff.Shield;
