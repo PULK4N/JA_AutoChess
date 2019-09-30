@@ -79,32 +79,55 @@ public class BoardManager : MonoBehaviour
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
-    public void SpawnFigure(string unitName)
+    public void SpawnFigure(GameObject unit)
     {
         for (int i = 0; i < 8; ++i)
         {
             if (Figures[-1, i] == null)
             {
-                GameObject FigureOnBoard = new GameObject();
-                FigureOnBoard.name = unitName + "Figure";
-
-                GameObject unitPrefab = Resources.Load(unitName + "/" + "footman_Red", typeof(GameObject)) as GameObject;
-                GameObject go = Instantiate(unitPrefab, Vector3.zero, Quaternion.identity) as GameObject;
-                go.transform.SetParent(FigureOnBoard.transform);
-
-                GameObject unitUI = Resources.Load("FigureUI", typeof(GameObject)) as GameObject;
-                GameObject go1 = Instantiate(unitUI, Vector3.zero, Quaternion.identity) as GameObject;
-                go1.transform.SetParent(FigureOnBoard.transform);
-
-                FigureOnBoard.AddComponent<Figure>();
-                FigureOnBoard.GetComponent<Figure>().Owner = Owner;
+                GameObject FigureOnBoard = FigureManager.CreateFigure(unit);
+                FigureOnBoard.GetComponent<Figure>().Untargetable = true;
+                FigureOnBoard.GetComponent<Figure>().Owner = "a"+i;   // To-Do: change owner to board.owner
                 FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
+                FigureOnBoard.GetComponent<Figure>().OnMove += (f, nextRow, nextColumn) =>
+                {
+                    Figures[f.Position.Row, f.Position.Column] = null;
+                    Figures[nextRow, nextColumn] = f;
+                    f.gameObject.transform.position = GetTileCenter(nextRow, nextColumn);
+                };
+                FigureOnBoard.GetComponent<Figure>().OnSell += figure => SellFigure(figure);
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
                 break;
             }
         }
+    }
+
+    public void SellFigure(GameObject figure)
+    {
+        _activeChessFigures.Remove(figure);
+        Figures[figure.GetComponent<Figure>().Position.Row, figure.GetComponent<Figure>().Position.Column] = null;
+        UnitShop.SellUnit(figure);
+    }
+
+    public void PrepareForBattle()
+    {
+        foreach (GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            figure.PrepareForBattle();
+        }
+    }
+
+    public void RecoverFromBattle()
+    {
+        foreach (GameObject figurePrefab in ChessFigurePrefabs)
+        {
+            Figure figure = figurePrefab.GetComponent<Figure>();
+            figure.Restart();
+        }
+        SpawnAllChessFigures();
     }
 
     private void SpawnChessFigure(int index, int row, int column)
@@ -130,9 +153,6 @@ public class BoardManager : MonoBehaviour
     
     private void Start()
     {
-        Sprite myImage = Resources.Load("thor/pictures/thor", typeof(Sprite)) as Sprite;
-        GameObject.Find("Unit1_image").GetComponent<Image>().sprite = myImage;
-
         boardTiles = new BoardTiles();
         SetUpTheTiles();
 
@@ -141,6 +161,14 @@ public class BoardManager : MonoBehaviour
         _activeChessFigures = new List<GameObject>();
 
         Dijkstra.SetGraph(Figures);
+
+        MatchManager.Instance.OnStateChage += matchState =>
+        {
+            if (matchState == Enums.MatchState.Preparation)
+                RecoverFromBattle();
+            if (matchState == Enums.MatchState.Battle)
+                PrepareForBattle();
+        };
     }
 
     private void Update()
@@ -148,60 +176,93 @@ public class BoardManager : MonoBehaviour
         DrawChessBoard();
         UpdateSelection();
 
+        if (Input.GetMouseButtonDown(1))
+        {
+            HideSelectedFigureTooltip();
+            ShowSelectedFigureTooltip(selectionRow, selectionColumn);
+        }
+
+        if (MatchManager.Instance.MatchState != Enums.MatchState.Preparation)
+            return;
+
+        FigurePlacement();
+    }
+
+    private Figure _openTooltipFigure = null;
+    private void ShowSelectedFigureTooltip(int row, int column)
+    {
+        if (Figures[row, column] != null)
+            _openTooltipFigure = Figures[row, column];
+        _openTooltipFigure.FigureUIManager.ShowTooltip();
+    }
+
+    private void HideSelectedFigureTooltip()
+    {
+        if (_openTooltipFigure != null)
+            _openTooltipFigure.FigureUIManager.HideTooltip();
+    }
+
+    private void FigurePlacement()
+    {
         if (Input.GetMouseButtonDown(0))
         {
-            if (selectionColumn >= 0 && selectionRow >= -1)
-            {
-                if (_selectedFigure == null)
-                {
-                    SelectFigure(selectionRow, selectionColumn);
-                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
-                }
-            }
+            HideSelectedFigureTooltip();
+            SelectFigureCommand();
         }
-
         if (Input.GetMouseButton(0))
         {
-            if (selectionColumn >= 0 && selectionRow >= -1)
-            {
-                if (_selectedFigure != null)
-                {
-                    if (selectionRow > 3)
-                    {
-                        selectionRow = 3;
-                    }
-                    boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
-                    _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
-                }
-                if(boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
-                {
-                    _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
-                    _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
-                }
-            }
+            MoveFigureWhileSelected();
         }
-
         if (Input.GetMouseButtonUp(0))
         {
-            if (selectionColumn >= 0 && selectionRow >= -1)
+            PlaceFigure();
+        }
+    }
+
+    private void SelectFigureCommand()
+    {
+        if (selectionColumn >= 0 && selectionRow >= -1)
+        {
+            if (_selectedFigure == null)
+            {
+                SelectFigure(selectionRow, selectionColumn);
+                _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
+            }
+        }
+    }
+
+    private void MoveFigureWhileSelected()
+    {
+        if (selectionColumn >= 0 && selectionRow >= -1)
+        {
+            if (_selectedFigure != null)
             {
                 if (selectionRow > 3)
                 {
                     selectionRow = 3;
                 }
-                if (_selectedFigure != null)
-                    MoveFigure(selectionRow, selectionColumn);
+                boardTiles[selectionRow, selectionColumn].ChangeColor(Color.green);
+                _selectedFigure.transform.position = GetTileCenter(selectionRow, selectionColumn);
+            }
+            if (boardTiles[selectionRow, selectionColumn] != _lastBoardTilePassed)
+            {
+                _lastBoardTilePassed.ChangeColor(BoardTiles.DefaultColor);
+                _lastBoardTilePassed = boardTiles[selectionRow, selectionColumn];
             }
         }
+    }
 
-        if(Input.GetKeyDown("down"))
-        {
-            Figures[0, 0].Die();
-        }
 
-        if (Input.GetKeyDown("up"))
+    private void PlaceFigure()
+    {
+        if (selectionColumn >= 0 && selectionRow >= -1)
         {
-            SpawnAllChessFigures();
+            if (selectionRow > 3)
+            {
+                selectionRow = 3;
+            }
+            if (_selectedFigure != null)
+                MoveFigure(selectionRow, selectionColumn);
         }
     }
 

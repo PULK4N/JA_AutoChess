@@ -5,63 +5,90 @@ using static Enums;
 
 public class Attack : MonoBehaviour
 {
-    public Attack(Figure source, TargetingSystem targetingSystem, DamageType damageType, AbiliyType abiliyType,
-        float speed, int castingRange, float damage, int abilityRange = 0, int bounceNumber = 0, List<Buff> buffs = null)
+    public Attack(Figure source, TargetingSystem targetingSystem, DamageType damageType,
+        float projectileSpeed, int range, float projectileDamage, Spell spellWhichThisProjectileCarry = null, List<Buff> buffs = null)
     {
         _source = source;
-        //_target = target;
         _targeting = targetingSystem;
         _damageType = damageType;
-        _abiliyType = abiliyType;
-        _speed = speed;
-        _castingRange = castingRange;
-        _damage = damage;
-        _abilityRange = abilityRange;
-        _bounceNumber = bounceNumber;
+        _projectileSpeed = projectileSpeed;
+        _range = range;
+        _projectileDamage = projectileDamage;
+        _spell = spellWhichThisProjectileCarry;
         this.Buffs = buffs;
         Position = source.gameObject.transform.position;
+        _startingTime = Time.realtimeSinceStartup;
     }
 
     private TargetingSystem _targeting;
-
     private DamageType _damageType;
-
-    private AbiliyType _abiliyType;
-
     private Figure _target;
-
     private Figure _source;
+    private float _projectileSpeed;
+    private int _range;
+    public int Range { get => _range; }
+    private float _projectileDamage;
 
-    private float _speed;
-
-    private int _castingRange;
-
-    private float _damage;
-
-    private int _abilityRange;
-
-    private int _bounceNumber;
-
+    private Spell _spell;
     public readonly List<Buff> Buffs;
 
     public Vector3 Position;
+    private float _startingTime;
+
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        switch(_targeting)
+        {
+            case TargetingSystem.Target:
+                _target = _source.Target;
+                break;
+            case TargetingSystem.Self:
+                _target = _source;
+                break;
+            case TargetingSystem.ClosestEnemy:
+            case TargetingSystem.HighestEnemyDps:
+            case TargetingSystem.LowestAllyHp:
+            default:
+                _target = Dijkstra.EnemyInsideRange(_source, _range, -1, -1, _targeting);
+                break;
+        }
+
+        if (_projectileSpeed == 0)
+            this.Position = _target.transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
         float damageReturn = 0;
-        if (Position == _target.gameObject.transform.position) // doubt this will work
-            _source.DamageFeedback(_damageType, _target.TakeDamage(_damageType, _damage, out damageReturn));
-        if (damageReturn > 0)
+
+        if (Position == _target.gameObject.transform.position ||
+            Polarity(_target.transform.position.x - Position.x) != Polarity(_target.transform.position.x - _source.transform.position.x) ||
+            Polarity(_target.transform.position.y - Position.y) != Polarity(_target.transform.position.y - _source.transform.position.y)) // doubt this will work
         {
-            float auxiliary;
-            _target.DamageFeedback(DamageType.Magical, _source.TakeDamage(DamageType.True, damageReturn, out auxiliary));
+            _source.DamageFeedback(_damageType, _target.TakeDamage(_damageType, _projectileDamage, out damageReturn, Buffs));
+            _spell.Activate();
+            if (damageReturn > 0)
+            {
+                _target.DamageFeedback(DamageType.Magical, _source.TakeDamage(DamageType.True, damageReturn));
+            }
+            Destroy(this);
         }
+
+        Position = new Vector3(
+            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * (Time.time - _startingTime),
+            Position.y,
+            (_target.transform.position.x - _source.transform.position.x) * _projectileSpeed * (Time.time - _startingTime));
+    }
+
+    private int Polarity(float number)
+    {
+        if (number > 0)
+            return 1;
+        if (number < 0)
+            return -1;
+        return 0;
     }
 }

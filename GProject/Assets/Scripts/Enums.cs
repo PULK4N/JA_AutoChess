@@ -44,16 +44,15 @@
 
     public enum DamageType
     {
+        none,
         Physical,
         Magical,
         True
     }
 
-    public enum AbiliyType
+    public enum MatchState
     {
-        Target,
-        AreaOfEffect,
-        Bouncing,
-        DamageBehindEnemy
+        Preparation,
+        Battle
     }
 }
