@@ -58,8 +58,7 @@ public abstract class Unit : MonoBehaviour
         public byte IsInvounrable;
         public byte HasDamageReturn;
 
-        public Enums.Deity Deity;
-        public Enums.Mythology Mythology;
+        public List<Enums.Synergy> Synergies;
 
         public delegate void MaxHpIncrease(float health);
         public event MaxHpIncrease OnMaxHpIncrease;

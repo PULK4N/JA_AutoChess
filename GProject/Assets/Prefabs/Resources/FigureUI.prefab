@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8271830941712440329}
   - component: {fileID: 5099172271715352439}
   - component: {fileID: 714947798144564892}
+  - component: {fileID: 3383375811594710499}
   m_Layer: 0
   m_Name: Description
   m_TagString: Untagged
@@ -79,6 +80,20 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 
+--- !u!114 &3383375811594710499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 154200786726902076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1741964061, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 2
+  m_VerticalFit: 0
 --- !u!1 &382204732388676314
 GameObject:
   m_ObjectHideFlags: 0
@@ -989,6 +1004,7 @@ GameObject:
   - component: {fileID: 3655499019394147842}
   - component: {fileID: 2604196285711300089}
   - component: {fileID: 211278831072349267}
+  - component: {fileID: 2357721000521115536}
   m_Layer: 0
   m_Name: Description
   m_TagString: Untagged
@@ -1057,6 +1073,20 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: 
+--- !u!114 &2357721000521115536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4517866392684112197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1741964061, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 2
+  m_VerticalFit: 0
 --- !u!1 &4931028021845817929
 GameObject:
   m_ObjectHideFlags: 0
@@ -1068,6 +1098,7 @@ GameObject:
   - component: {fileID: 8955530108084938634}
   - component: {fileID: 7194458931434105798}
   - component: {fileID: 56886631057925682}
+  - component: {fileID: 7353667908094516438}
   m_Layer: 0
   m_Name: Description
   m_TagString: Untagged
@@ -1128,7 +1159,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 0
-    m_MaxSize: 110
+    m_MaxSize: 300
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -1136,6 +1167,20 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: Sell
+--- !u!114 &7353667908094516438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4931028021845817929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1741964061, guid: f70555f144d8491a825f0804e09c671c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 2
+  m_VerticalFit: 0
 --- !u!1 &5784819188535367327
 GameObject:
   m_ObjectHideFlags: 0
@@ -1773,7 +1818,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &3940427949530120582
 RectTransform:
   m_ObjectHideFlags: 0
