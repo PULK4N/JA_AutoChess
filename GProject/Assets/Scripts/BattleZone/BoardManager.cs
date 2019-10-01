@@ -290,21 +290,33 @@ public class BoardManager : MonoBehaviour
                 figureToSwap.transform.position = GetTileCenter(_selectedFigure.Position.Row, _selectedFigure.Position.Column);
                 Figures[_selectedFigure.Position.Row, _selectedFigure.Position.Column] = figureToSwap;
 
-                figureToSwap.Position.Row = _selectedFigure.Position.Row;
-                figureToSwap.Position.Column = _selectedFigure.Position.Column;
-                figureToSwap.Untargetable = row == -1;
+                AssignFigureToPosition(figureToSwap, _selectedFigure.Position.Row, _selectedFigure.Position.Column);
             }
 
             Figures[row, column] = _selectedFigure;
-            _selectedFigure.transform.position = GetTileCenter(row, column);
-            _selectedFigure.Position.Row = row;
-            _selectedFigure.Position.Column = column;
-            _selectedFigure.Untargetable = row == -1;
+            AssignFigureToPosition(_selectedFigure, row, column);
 
             boardTiles[selectionRow, selectionColumn].ChangeColor(BoardTiles.DefaultColor);
         }
 
         _selectedFigure = null;
+    }
+
+    private void AssignFigureToPosition(Figure figure, int row, int column)
+    {
+        figure.transform.position = GetTileCenter(row, column);
+        int previousRow = figure.Position.Row;
+        figure.Position.Row = row;
+        figure.Position.Column = column;
+        figure.Untargetable = row == -1;
+
+        if ((previousRow >= 0) != (row >= 0))
+        {
+            if (row == -1)
+                SynergyManager.RemoveFigure(figure);
+            else
+                SynergyManager.AddFigure(figure);
+        }
     }
 
     private bool IsPositionAllowed(int row, int column)

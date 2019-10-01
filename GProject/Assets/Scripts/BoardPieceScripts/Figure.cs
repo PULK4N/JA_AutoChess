@@ -18,6 +18,10 @@ public class Figure : MonoBehaviour
     public FigureUIManager FigureUIManager;
     public int Cost;
 
+    public Enums.Synergy Mythology { get => Unit.Stats.Synergies[0]; }
+    public Enums.Synergy Diety { get => Unit.Stats.Synergies[1]; }
+    public Enums.Synergy AdditionalDiety { get => Unit.Stats.Synergies.Count > 2 ? Unit.Stats.Synergies[2] : Enums.Synergy.none; }
+
     public string Owner { get; set; }
 
     public int Range { get { return Unit.Stats.Range; } }
@@ -229,7 +233,9 @@ public class Figure : MonoBehaviour
         Untargetable = false;
         _matchStartingPosition.Row = Position.Row;
         _matchStartingPosition.Column = Position.Column;
-        // To-Do: apply starting buffs
+        List<Buff> buffs = SynergyManager.GetBuffsForFigure(this);
+        foreach (Buff buff in buffs)
+            AddBuff(buff);
         Unit.CurrentHealth = Unit.Stats.Health;
         Unit.CurrentMana = Unit.Stats.StartingMana;
     }

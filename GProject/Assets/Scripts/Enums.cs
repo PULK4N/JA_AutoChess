@@ -21,16 +21,25 @@
         None
     }
 
-    public enum Mythology
+    public enum Synergy
     {
+        none
+
+
+
 
     }
 
-    public enum Deity
+    public enum SynergyType
     {
+        Mythology,
+        Deity
+    }
 
-
-
+    public enum SynergyBuffTarget
+    {
+        AllAllies,
+        SynergyHolders
     }
 
     public enum TargetingSystem
