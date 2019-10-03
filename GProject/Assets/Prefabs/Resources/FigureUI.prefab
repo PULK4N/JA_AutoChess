@@ -296,6 +296,11 @@ MonoBehaviour:
   Tooltip: {fileID: 8901469343891030784}
   SellButton: {fileID: 1755904999068187463}
   PieceToggle: {fileID: 3661080771771424251}
+  ImgPawn: {fileID: 21300000, guid: cc14f767298612142ad6285e23607b58, type: 3}
+  ImgBishop: {fileID: 21300000, guid: 3d4ec692f56668b4f80f3c26ded666f8, type: 3}
+  ImgKnight: {fileID: 21300000, guid: be8ef23e217fa48468b8174bd615f408, type: 3}
+  ImgRook: {fileID: 21300000, guid: b5fcc390c1a564d46a23898152644525, type: 3}
+  ImgQueen: {fileID: 21300000, guid: 893e89e2337b7d647a3b585e22002f80, type: 3}
   Spell: {fileID: 7493605255561377607}
 --- !u!1 &1330878446399336050
 GameObject:

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class Buff : MonoBehaviour
 {
-    public Buff(Unit.Properties buffStats, float duration, int maxNumberOfStacks, Enums.DamageType damageType = Enums.DamageType.none)
+    public void Initialize(Unit.Properties buffStats, float duration, int maxNumberOfStacks, Enums.DamageType damageType = Enums.DamageType.none)
     {
         _buffStats = buffStats;
         _duration = duration;
@@ -45,6 +45,6 @@ public abstract class Buff : MonoBehaviour
     public void Dispell()
     {
         OnExpire(this);
-        Destroy(this);
+        Destroy(this.gameObject);
     }
 }

@@ -30,13 +30,18 @@ public class Figure : MonoBehaviour
     private Figure _target;
     public Figure Target { get => _target; }
 
+    public void CarryEnemyColors()
+    {
+        FigureUIManager.CarryEnemyColors();
+    }
+
     public delegate void Sell(GameObject figure);
     public event Sell OnSell;
     public void Start()
     {
         FigureUIManager.OnFigureSellClick += () => OnSell(this.gameObject);
         FigureUIManager.OnPieceToggleClick += toggle => Piece.Toggle();
-        FigureUIManager.SetPieceToggleText(Piece);
+        FigureUIManager.SetPieceToggleText(Piece.PieceType);
         FigureUIManager.SetSpellTooltip(Unit.GetAbilityDescription());
         FigureUIManager.SetSpellImage(Unit);
     }
@@ -226,6 +231,7 @@ public class Figure : MonoBehaviour
         Position.Column = _matchStartingPosition.Column;
         Unit.CurrentHealth = Unit.Stats.Health;
         Unit.CurrentMana = Unit.Stats.StartingMana;
+        FigureUIManager.EnableToggle();
     }
 
     public void PrepareForBattle()
@@ -233,10 +239,14 @@ public class Figure : MonoBehaviour
         Untargetable = false;
         _matchStartingPosition.Row = Position.Row;
         _matchStartingPosition.Column = Position.Column;
+        Buff pieceBuff = Piece.GrantBuff();
+        if (pieceBuff != null)
+            AddBuff(pieceBuff);
         List<Buff> buffs = SynergyManager.GetBuffsForFigure(this);
         foreach (Buff buff in buffs)
             AddBuff(buff);
         Unit.CurrentHealth = Unit.Stats.Health;
         Unit.CurrentMana = Unit.Stats.StartingMana;
+        FigureUIManager.ToggleDisable();
     }
 }

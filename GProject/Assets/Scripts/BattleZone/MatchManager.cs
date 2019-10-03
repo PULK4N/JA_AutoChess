@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class MatchManager : MonoBehaviour
 {
+    [SerializeField]
+    public List<GameObject> PlayerObjects;
+    public List<Player> Players;
     void Awake()
     {
         SetupSingleton();
@@ -34,6 +38,10 @@ public class MatchManager : MonoBehaviour
         _preparationDuration = 30;
         _battleDuration = 60;
         _round = 1;
+
+        PlayerObjects = GameObject.FindGameObjectsWithTag("Player").ToList();
+        foreach (GameObject player in PlayerObjects)
+            Players.Add(player.GetComponent<Player>());
     }
 
     public Text Text;
@@ -51,6 +59,15 @@ public class MatchManager : MonoBehaviour
 
     public delegate void StateChange(Enums.MatchState matchState);
     public event StateChange OnStateChage;
+
+    private void MatchPlayers()
+    {
+        List<Player> players = MatchMaking.GenerateMatches(Players);
+        for (int i = 0; i < players.Count-1; ++i)
+            players[i + 1].BoardManager.SpawnEnemyFigures(players[i].BoardManager.CopyActiveFigures());
+        players[0].BoardManager.SpawnEnemyFigures(players[players.Count - 1].BoardManager.CopyActiveFigures());
+    }
+
     private void ChangeState()
     {
         switch(MatchState)
@@ -59,12 +76,14 @@ public class MatchManager : MonoBehaviour
                 _preparationStartTime = Time.time;
                 MatchState = Enums.MatchState.Preparation;
                 ++_round;
-                UnitShop.Reroll();
+                if (!UnitShop.ShopLocked)
+                    UnitShop.Reroll();
                 OnStateChage(MatchState);
                 break;
             case Enums.MatchState.Preparation:
                 _battleStartTime = Time.time;
                 MatchState = Enums.MatchState.Battle;
+                MatchPlayers();
                 OnStateChage(MatchState);
                 break;
         }
@@ -79,5 +98,8 @@ public class MatchManager : MonoBehaviour
 
         int secondsLeft = (int)(Mathf.Max(_battleStartTime + _battleDuration, _preparationStartTime + _preparationDuration) - Time.time);
         Text.text = MatchState.ToString() + ": " + secondsLeft;
+
+        //if (MatchState == Enums.MatchState.Battle && secondsLeft == _battleDuration - 2)
+        //    OnStateChage(MatchState);
     }
 }

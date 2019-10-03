@@ -64,4 +64,14 @@
         Preparation,
         Battle
     }
+
+    public enum Piece
+    {
+        none,
+        Pawn,
+        Bishop,
+        Knight,
+        Rook,
+        Queen
+    }
 }
