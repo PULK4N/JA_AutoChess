@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public static class UnitShop
 {
+    public static bool ShopLocked;
     public static void Reroll()
     {
         foreach(GameObject unit in units)
@@ -22,37 +24,28 @@ public static class UnitShop
         if (units == null)
             return;
 
-        for(int i=0;i<units.Count;++i)
-        {
-            GameObject unit = units[i];
-            Sprite unitImage = Resources.Load(unit.GetComponent<Unit>().GetType().Name + "/pictures/ShopImage", typeof(Sprite)) as Sprite;
-            GameObject.Find("UnitImage" + i).GetComponent<Image>().sprite = unitImage;
-            GameObject.Find("UnitImage" + i).SetActive(true);
-        }
+        GameObject.Find("UnitPick").GetComponent<ShopUI>().PlaceNewUnits(units);
     }
 
-    public static bool BuyUnit(string unitName)
+    public static bool BuyUnit(GameObject unit, Enums.Piece piece)
     {
-        if (MatchManager.Instance.MatchState != Enums.MatchState.Preparation)
+        Player player = GameObject.Find("Player").GetComponent<Player>();
+        int cost = CostCalculator.Calculate(unit.GetComponent<Unit>(), piece);
+        if (player.Pawns < cost)
             return false;
-        //To-Do: if player has enough gold, if not return false
-        foreach(GameObject unit in units)
-        {
-            if (unit.GetComponent<Unit>().GetType().Name == unitName)
-            {
-                // To-Do: remove gold from player
-                GameObject.Find("ChessBoard").GetComponent<BoardManager>().SpawnFigure(unit);
-                units.Remove(unit);
-                return true;
-            }
-        }
-        return false;
+        if (!GameObject.Find("ChessBoard").GetComponent<BoardManager>().SpawnFigure(unit, piece))
+            return false;
+        player.Pawns -= cost;
+        units.Remove(unit);
+        return true;
     }
 
     public static void SellUnit(GameObject figure)
     {
-        // return gold to player
-        //figure.GetComponent<Figure>().Cost
+        if (MatchManager.Instance.MatchState != Enums.MatchState.Preparation)
+            return;
+        Player player = GameObject.Find("Player").GetComponent<Player>();
+        player.Pawns += figure.GetComponent<Figure>().Cost;
         GameObject unit = figure.GetComponent<Figure>().Unit.gameObject;
         FigureManager.Disassemble(figure);
         unit.SetActive(false);

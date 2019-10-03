@@ -64,7 +64,7 @@ public class Dijkstra
         {
             for (int i = -distance; i <= distance; i++)
             {
-                if (column + i >= 0 && row + i <= 7)
+                if (column + i >= 0 && column + i <= 7)
                 {
                     if (row + distance - System.Math.Abs(i) >= 0 && row + distance - System.Math.Abs(i) <= 7)
                     {
@@ -171,7 +171,7 @@ public class Dijkstra
             return null;
     }
 
-    public static Point FindNextStep(Figure source)
+    public static Point FindNextStep(Figure source, bool isKnight = false)
     {
         int[,] distance = new int[_rows, _columns];
         bool[,] shortestPathTreeSet = new bool[_rows, _columns];
@@ -209,11 +209,13 @@ public class Dijkstra
                         distance[i, j] = distance[u.X, u.Y] + 1;
             }
         }
-
-        return MakePath(source, u, distance)[0];
+        if(!isKnight)
+            return MakePath(source, u, distance)[0];
+        else
+            return MakePath(source, u, distance, true)[0];
     }
 
-    private static List<Point> MakePath(Figure source, Point goal, int[,] distance)
+    private static List<Point> MakePath(Figure source, Point goal, int[,] distance, bool isknight=false)
     {
         int x = goal.X, y = goal.Y;
         List<Point> path = new List<Point>();
@@ -233,7 +235,8 @@ public class Dijkstra
                     {
                         if(_graph[xdx, ydy] == source)
                         {
-                            path.Reverse();
+                            if (!isknight)
+                                path.Reverse();
                             return path;
                         }
                         pathNode.X = xdx;
@@ -248,7 +251,45 @@ public class Dijkstra
             if (cnt++ >= 10)
                 break;
         }
-        path.Reverse();
+        if (!isknight)
+            path.Reverse();
         return path;
+    }
+
+    public static Point KnightJumpOnStart(Figure source)
+    {
+        int row = 0;
+        int column = source.Position.Column;
+        List<Point> freeTilesInRange = new List<Point>();
+        if (source.Position.Row < 4)
+        {
+            row = 7;
+        }
+
+        if (_graph[row, column] == null)
+            return new Point(row, column);
+
+        for (int distance = 1; distance <= 8; ++distance)
+        {
+            for (int i = -distance; i <= distance; i++)
+            {
+                if (column + i >= 0 && column + i <= 7)
+                {
+                    if (row + distance - System.Math.Abs(i) >= 0 && row + distance - System.Math.Abs(i) <= 7)
+                    {
+                        if (_graph[row + distance - System.Math.Abs(i), column] == null)
+                            freeTilesInRange.Add(new Point(row + distance - System.Math.Abs(i), column + i));
+                    }
+                    if (row - distance + System.Math.Abs(i) >= 0 && row - distance + System.Math.Abs(i) <= 7)
+                    {
+                        if (_graph[row - distance + System.Math.Abs(i), column] == null)
+                            freeTilesInRange.Add(new Point(row - distance + System.Math.Abs(i), column + i));
+                    }
+                }
+                if (freeTilesInRange.Count > 0)
+                    return freeTilesInRange[Random.Range(0, freeTilesInRange.Count)];
+            }
+        }
+        return new Point(source.Position.Row, source.Position.Column);
     }
 }

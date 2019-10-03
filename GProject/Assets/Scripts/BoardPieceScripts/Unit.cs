@@ -66,7 +66,7 @@ public abstract class Unit : MonoBehaviour
         public event MaxHpIncrease OnMaxManaIncrease;
         public static Properties operator +(Properties property, Properties buff)
         {
-            property.Range += buff.Range;
+            property.Range *= buff.Range;
             property.AbilityRange += buff.Range;                         // Range also buffs ability range
             property.AttackSpeed *= (100 + buff.AttackSpeed) / 100;      // Attack speed adds to itself in percentage
             property.AttackDamage += buff.AttackDamage;
@@ -102,7 +102,7 @@ public abstract class Unit : MonoBehaviour
 
         public static Properties operator -(Properties property, Properties buff)
         {
-            property.Range -= buff.Range;
+            property.Range /= buff.Range;
             property.AbilityRange -= buff.Range;                       // Range also buffs ability range
             property.AttackSpeed /= 1 + buff.AttackSpeed;              // Attack speed adds to itself in percentage
             property.AttackDamage -= buff.AttackDamage;

@@ -75,20 +75,25 @@ public class BoardManager : MonoBehaviour
     private Figure _selectedFigure;
 
     public List<GameObject> ChessFigurePrefabs;
-    private List<GameObject> _activeChessFigures;
+    private List<GameObject> _activeAllyChessFigures;
+    private List<GameObject> _activeEnemyChessFigures;
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
-    public void SpawnFigure(GameObject unit)
+    public bool SpawnFigure(GameObject unit, Enums.Piece piece)
     {
         for (int i = 0; i < 8; ++i)
         {
             if (Figures[-1, i] == null)
             {
-                GameObject FigureOnBoard = FigureManager.CreateFigure(unit);
+                GameObject FigureOnBoard = FigureManager.CreateFigure(unit, piece);
                 FigureOnBoard.GetComponent<Figure>().Untargetable = true;
-                FigureOnBoard.GetComponent<Figure>().Owner = "a"+i;   // To-Do: change owner to board.owner
-                FigureOnBoard.GetComponent<Figure>().OnDeath += f => Figures[f.Position.Row, f.Position.Column] = null;
+                FigureOnBoard.GetComponent<Figure>().Owner = Owner;
+                FigureOnBoard.GetComponent<Figure>().OnDeath += f =>
+                {
+                    Figures[f.Position.Row, f.Position.Column] = null;
+                    _activeAllyChessFigures.Remove(f.gameObject);
+                };
                 FigureOnBoard.GetComponent<Figure>().OnMove += (f, nextRow, nextColumn) =>
                 {
                     Figures[f.Position.Row, f.Position.Column] = null;
@@ -99,21 +104,48 @@ public class BoardManager : MonoBehaviour
 
                 ChessFigurePrefabs.Add(FigureOnBoard);
                 SpawnChessFigure(ChessFigurePrefabs.Count - 1, -1, i);
-                break;
+                return true;
             }
         }
+        return false;
+    }
+
+    public List<GameObject> CopyActiveFigures()
+    {
+        List<GameObject> copiedUnits = new List<GameObject>(); 
+        foreach (GameObject figure in _activeAllyChessFigures)
+        {
+            copiedUnits.Add(Instantiate(figure));
+        }
+        return copiedUnits;
+    }
+
+    public void SpawnEnemyFigures(List<GameObject> figures)
+    {
+        foreach(GameObject figureObj in figures)
+        {
+            Figure figure = figureObj.GetComponent<Figure>();
+            figure.CarryEnemyColors();
+            figure.Position.Row = 7 - figure.Position.Row;
+            figure.Position.Column = 7 - figure.Position.Column;
+            Figures[figure.Position.Row, figure.Position.Column] = figure;
+            _activeEnemyChessFigures.Add(figureObj);
+        }
+        DPSmanager.Instance.AllyFigures = _activeEnemyChessFigures;
     }
 
     public void SellFigure(GameObject figure)
     {
-        _activeChessFigures.Remove(figure);
+        ChessFigurePrefabs.Remove(figure);
+        if (_activeAllyChessFigures.Contains(figure))
+            _activeAllyChessFigures.Remove(figure);
         Figures[figure.GetComponent<Figure>().Position.Row, figure.GetComponent<Figure>().Position.Column] = null;
         UnitShop.SellUnit(figure);
     }
 
     public void PrepareForBattle()
     {
-        foreach (GameObject figurePrefab in ChessFigurePrefabs)
+        foreach (GameObject figurePrefab in _activeAllyChessFigures)
         {
             Figure figure = figurePrefab.GetComponent<Figure>();
             figure.PrepareForBattle();
@@ -125,6 +157,8 @@ public class BoardManager : MonoBehaviour
         foreach (GameObject figurePrefab in ChessFigurePrefabs)
         {
             Figure figure = figurePrefab.GetComponent<Figure>();
+            if (figure.Position.Row == -1)
+                break;
             figure.Restart();
         }
         SpawnAllChessFigures();
@@ -137,7 +171,8 @@ public class BoardManager : MonoBehaviour
         ChessFigurePrefabs[index].transform.position = GetTileCenter(row, column);
         Figures[row, column].Position.Row = row;
         Figures[row, column].Position.Column = column;
-        _activeChessFigures.Add(ChessFigurePrefabs[index]);
+        if (row != -1)
+            _activeAllyChessFigures.Add(ChessFigurePrefabs[index]);
     }
 
     private void SpawnAllChessFigures()
@@ -158,7 +193,7 @@ public class BoardManager : MonoBehaviour
 
         Figures = new FigureSet();
 
-        _activeChessFigures = new List<GameObject>();
+        _activeAllyChessFigures = new List<GameObject>();
 
         Dijkstra.SetGraph(Figures);
 
@@ -169,6 +204,8 @@ public class BoardManager : MonoBehaviour
             if (matchState == Enums.MatchState.Battle)
                 PrepareForBattle();
         };
+
+        DPSmanager.Instance.AllyFigures = _activeAllyChessFigures;
     }
 
     private void Update()
@@ -313,9 +350,15 @@ public class BoardManager : MonoBehaviour
         if ((previousRow >= 0) != (row >= 0))
         {
             if (row == -1)
+            {
                 SynergyManager.RemoveFigure(figure);
+                _activeAllyChessFigures.Remove(figure.gameObject);
+            }
             else
+            {
                 SynergyManager.AddFigure(figure);
+                _activeAllyChessFigures.Add(figure.gameObject);
+            }
         }
     }
 

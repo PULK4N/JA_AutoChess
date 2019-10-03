@@ -4,21 +4,21 @@ using UnityEngine;
 
 public static class MatchMaking
 {
-    private static List<GameObject> PreviousListOfMatches = new List<GameObject>();
+    private static List<Player> PreviousListOfMatches = new List<Player>();
 
-    public static List<GameObject> GenerateMatches(List<GameObject> ListOfPlayers)
+    public static List<Player> GenerateMatches(List<Player> ListOfPlayers)
     {
-        List<GameObject> CoppiedListOfPlayers = new List<GameObject>(ListOfPlayers);
-        List<GameObject> ListOfMatches = new List<GameObject>();
+        List<Player> CoppiedListOfPlayers = new List<Player>(ListOfPlayers);
+        List<Player> ListOfMatches = new List<Player>();
         int j = 0;
 
         System.Random random = new System.Random(System.DateTime.Now.Millisecond);
-        GameObject player = CoppiedListOfPlayers[0];
+        Player player = CoppiedListOfPlayers[0];
 
         while (CoppiedListOfPlayers.Count > 0)
         {
-            GameObject enemy;
-            GameObject lastEnemy;
+            Player enemy;
+            Player lastEnemy;
             CoppiedListOfPlayers.Remove(player);
             if (PreviousListOfMatches.Count > 0)
             {

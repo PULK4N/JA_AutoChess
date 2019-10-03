@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,12 +15,22 @@ public class FigureUIManager : MonoBehaviour
     public GameObject Tooltip;
     public Button SellButton;
     public Toggle PieceToggle;
+    public Sprite ImgPawn;
+    public Sprite ImgBishop;
+    public Sprite ImgKnight;
+    public Sprite ImgRook;
+    public Sprite ImgQueen;
     public Image Spell;
 
     private float _currentHealthValue;
     private float _currentManaValue;
     private FigureSell _figureSell;
     private FigurePieceToggle _figurePieceToggle;
+
+    public void CarryEnemyColors()
+    {
+        ImgHealthBar.color = Color.red;
+    }
 
     public void SetHealth(float Health)
     {
@@ -76,11 +87,58 @@ public class FigureUIManager : MonoBehaviour
         Spell.GetComponent<FigureTooltip>().SetTooltip(text);
     }
 
-    public void SetPieceToggleText(Piece piece)
+    private bool _isPawn;
+    public void SetPieceToggleText(Enums.Piece piece)
     {
-        // To-Do: for each piece write default description
-        //string tooltip;
-        //PieceToggle.GetComponent<FigureTooltip>().SetTooltip(tooltip);
+        StringBuilder tooltip = new StringBuilder();
+        switch(piece)
+        {
+            case Enums.Piece.Pawn:
+                ToggleDisable();
+                _isPawn = true;
+                tooltip.Append("Pawn");
+                tooltip.AppendLine("No bonuses");
+                PieceToggle.image.sprite = ImgPawn;
+                break;
+            case Enums.Piece.Bishop:
+                tooltip.Append("Bishop");
+                tooltip.AppendLine("OFF: Start battle with 100% mana");
+                tooltip.AppendLine("ON: Get 2X mana");
+                PieceToggle.image.sprite = ImgBishop;
+                break;
+            case Enums.Piece.Knight:
+                tooltip.Append("Knight");
+                tooltip.AppendLine("Passive: get bonus attack speed");
+                tooltip.AppendLine("OFF: Transcend grand distances quickly");
+                tooltip.AppendLine("ON: Double the Range");
+                PieceToggle.image.sprite = ImgKnight;
+                break;
+            case Enums.Piece.Rook:
+                tooltip.Append("Rook");
+                tooltip.AppendLine("Passive: get bonus attack damage");
+                tooltip.AppendLine("OFF: Bonus armor, magic resist and attack damage");
+                tooltip.AppendLine("ON: Higher bonuses but unable to cast abilities");
+                PieceToggle.image.sprite = ImgRook;
+                break;
+            case Enums.Piece.Queen:
+                tooltip.Append("Queen");
+                tooltip.AppendLine("OFF: Bonus on all stats");
+                tooltip.AppendLine("ON: On start of the battle get shield equal to 100% of HP");
+                PieceToggle.image.sprite = ImgQueen;
+                break;
+        }
+        PieceToggle.GetComponent<FigureTooltip>().SetTooltip(tooltip.ToString());
+    }
+
+    public void ToggleDisable()
+    {
+        PieceToggle.interactable = false;
+    }
+
+    public void EnableToggle()
+    {
+        if (!_isPawn)
+            PieceToggle.interactable = true;
     }
 
     public void ShowTooltip()

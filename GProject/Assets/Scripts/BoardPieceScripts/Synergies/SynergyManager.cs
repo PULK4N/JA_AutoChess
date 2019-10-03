@@ -48,6 +48,7 @@ public static class SynergyManager
 
     public static void Initialize()
     {
-        // To-Do: init
+        Synergies = new List<Synergy>();
+        FiguresInSynergy = new List<List<Figure>>();
     }
 }

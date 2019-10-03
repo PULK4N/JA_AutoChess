@@ -20,4 +20,5 @@ public class FigureTooltip : MonoBehaviour
     {
         Text.text = text;
     }
+
 }
