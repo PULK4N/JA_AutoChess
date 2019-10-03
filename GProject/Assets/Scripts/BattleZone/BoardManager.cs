@@ -76,6 +76,7 @@ public class BoardManager : MonoBehaviour
 
     public List<GameObject> ChessFigurePrefabs;
     private List<GameObject> _activeAllyChessFigures;
+    private List<GameObject> _activeEnemyChessFigures;
 
     private Quaternion orientation = Quaternion.Euler(0, 180, 0);
 
@@ -125,9 +126,12 @@ public class BoardManager : MonoBehaviour
         {
             Figure figure = figureObj.GetComponent<Figure>();
             figure.CarryEnemyColors();
-            figure.Position.Column = 7 - figure.Position.Column;
             figure.Position.Row = 7 - figure.Position.Row;
+            figure.Position.Column = 7 - figure.Position.Column;
+            Figures[figure.Position.Row, figure.Position.Column] = figure;
+            _activeEnemyChessFigures.Add(figureObj);
         }
+        DPSmanager.Instance.AllyFigures = _activeEnemyChessFigures;
     }
 
     public void SellFigure(GameObject figure)
@@ -200,6 +204,8 @@ public class BoardManager : MonoBehaviour
             if (matchState == Enums.MatchState.Battle)
                 PrepareForBattle();
         };
+
+        DPSmanager.Instance.AllyFigures = _activeAllyChessFigures;
     }
 
     private void Update()
