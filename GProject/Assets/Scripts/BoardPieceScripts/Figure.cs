@@ -58,6 +58,7 @@ public class Figure : MonoBehaviour
         FigureUIManager.SetMana(Unit.Stats.Mana / Unit.CurrentMana);
     }
 
+    private bool _startOfMatch = false;
     private float _lastAttacked = 0;
     public void AttackOrMove()
     {
@@ -66,6 +67,14 @@ public class Figure : MonoBehaviour
 
         if (Untargetable)
             return;
+
+        if(Piece.PieceType==Enums.Piece.Knight && _startOfMatch)
+        {
+            Point destination = Dijkstra.KnightJumpOnStart(this);
+            OnMove(this, destination.X, destination.Y);
+            Position.Row = destination.X;
+            Position.Column = destination.Y;
+        }
 
         if (Time.time <_lastAttacked + Unit.Stats.AttackSpeed)
             return;
@@ -104,7 +113,11 @@ public class Figure : MonoBehaviour
 
     private void EnemyOutsideRange()
     {
-        Point nextPosition = Dijkstra.FindNextStep(this);
+        Point nextPosition;
+        if (Piece.PieceType != Enums.Piece.Knight)
+            nextPosition = Dijkstra.FindNextStep(this);
+        else
+            nextPosition = Dijkstra.FindNextStep(this, true);
         if (nextPosition.X < 0 || nextPosition.Y < 0)
             return;
         OnMove(this, nextPosition.X, nextPosition.Y);

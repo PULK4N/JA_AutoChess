@@ -75,6 +75,7 @@
     <Compile Include="Assets\PlayerNames.cs" />
     <Compile Include="Assets\Scripts\BattleZone\BattleZoneManager.cs" />
     <Compile Include="Assets\Scripts\BattleZone\BoardManager.cs" />
+    <Compile Include="Assets\Scripts\BattleZone\DPSmanager.cs" />
     <Compile Include="Assets\Scripts\BattleZone\MatchMaking.cs" />
     <Compile Include="Assets\Scripts\BattleZone\MatchManager.cs" />
     <Compile Include="Assets\Scripts\BattleZone\Player.cs" />
